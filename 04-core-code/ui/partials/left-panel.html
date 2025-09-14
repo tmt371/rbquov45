@@ -1,0 +1,106 @@
+<div id="left-panel">
+    <div id="left-panel-toggle" title="Toggle Left Panel">
+         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 20px; height: 20px;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+    </div>
+    <div class="tab-container">
+        <button id="k1-tab" class="tab-button active" data-tab-target="#k1-content">K1</button>
+        <button id="k2-tab" class="tab-button" data-tab-target="#k2-content">K2</button>
+        <button id="k3-tab" class="tab-button" data-tab-target="#k3-content">K3</button>
+        <button id="k4-tab" class="tab-button" data-tab-target="#k4-content">K4</button>
+        <button id="k5-tab" class="tab-button" data-tab-target="#k5-content">K5</button>
+    </div>
+    <div class="tab-content-container">
+        <div id="k1-content" class="tab-content active">
+            <div class="feature-grid">
+                <div class="feature-group">
+                    <div class="feature-buttons">
+                        <button id="btn-focus-location" class="feature-button">#Location</button>
+                        <input type="text" id="location-input-box" class="panel-input" placeholder="Location..." disabled>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="k2-content" class="tab-content">
+            <div class="feature-grid">
+                <div class="feature-group">
+                    <div class="feature-buttons">
+                        <button id="btn-focus-fabric" class="feature-button">#Fabric & Color</button>
+                    </div>
+                </div>
+                <div class="feature-group">
+                    <table class="panel-input-table" id="fabric-batch-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>F-Name</th>
+                                <th>F-Color</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>BO</td>
+                                <td><input type="text" data-type="BO" data-field="fabric" class="panel-input"></td>
+                                <td><input type="text" data-type="BO" data-field="color" class="panel-input"></td>
+                            </tr>
+                            <tr>
+                                <td>BO1</td>
+                                <td><input type="text" data-type="BO1" data-field="fabric" class="panel-input"></td>
+                                <td><input type="text" data-type="BO1" data-field="color" class="panel-input"></td>
+                            </tr>
+                            <tr>
+                                <td>SN</td>
+                                <td><input type="text" data-type="SN" data-field="fabric" class="panel-input"></td>
+                                <td><input type="text" data-type="SN" data-field="color" class="panel-input"></td>
+                            </tr>
+                            <tr>
+                                <td>LF</td>
+                                <td><input type="text" data-type="LF" data-field="fabric" class="panel-input" disabled></td>
+                                <td><input type="text" data-type="LF" data-field="color" class="panel-input" disabled></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div id="k3-content" class="tab-content">
+            <div class="feature-grid">
+                <div class="feature-group">
+                    <label class="feature-label">Focus & Batch: OVER (正反捲)</label>
+                    <div class="feature-buttons">
+                        <button id="btn-focus-over" class="feature-button">#OVER</button>
+                        <button id="btn-batch-over-o" class="feature-button batch-button">全部設為 O</button>
+                        <button id="btn-batch-over-normal" class="feature-button batch-button">全部設為 Normal</button>
+                    </div>
+                </div>
+                <div class="feature-group">
+                    <label class="feature-label">Focus & Batch: O/I (內外裝)</label>
+                    <div class="feature-buttons">
+                        <button id="btn-focus-oi" class="feature-button">#O/I</button>
+                        <button id="btn-batch-oi-in" class="feature-button batch-button">全部設為 IN</button>
+                        <button id="btn-batch-oi-out" class="feature-button batch-button">全部設為 OUT</button>
+                    </div>
+                </div>
+                <div class="feature-group">
+                    <label class="feature-label">Focus & Batch: L/R (左右拉繩)</label>
+                    <div class="feature-buttons">
+                        <button id="btn-focus-lr" class="feature-button">#L/R</button>
+                        <button id="btn-batch-lr-l" class="feature-button batch-button">全部設為 L</button>
+                        <button id="btn-batch-lr-r" class="feature-button batch-button">全部設為 R</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="k4-content" class="tab-content">(K4) 功能留空</div>
+        <div id="k5-content" class="tab-content">
+            <div class="feature-grid">
+                <div class="feature-group">
+                    <div class="feature-buttons">
+                         <button id="btn-return-form1" class="feature-button">Form1</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
