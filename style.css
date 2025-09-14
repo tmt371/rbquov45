@@ -256,3 +256,32 @@ html, body {
 .dialog-button:nth-of-type(2):hover { background-color: #0069d9; }
 .dialog-button.secondary { background-color: #6c757d; color: white; }
 .dialog-button.secondary:hover { background-color: #5a6268; }
+
+
+/* --- [NEW] Responsive Adjustments for Mobile Devices --- */
+@media (max-width: 600px) {
+    .results-table th,
+    .results-table td {
+        padding: 8px 4px;
+    }
+
+    .results-table th {
+        font-size: 0.85em;
+    }
+    
+    .input-display-cell {
+        font-size: 1em;
+    }
+
+    .results-table .col-sequence { width: 35px; }
+    .results-table .col-type { width: 60px; }
+    .results-table .col-over,
+    .results-table .col-oi,
+    .results-table .col-lr {
+        width: 55px;
+    }
+
+    #function-panel {
+        width: 250px;
+    }
+}

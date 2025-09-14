@@ -78,7 +78,6 @@ export class AppController {
             if (this.detailConfigView) {
                 this.detailConfigView.initializePanelState();
             }
-             // [NEW] Set columns for default tab (K1) on first entry
             this._handleTabSwitch({ tabId: 'k1-tab' });
         } else {
             this.uiService.setCurrentView('QUICK_QUOTE');
@@ -97,8 +96,8 @@ export class AppController {
         const TAB_COLUMN_MAP = {
             'k1-tab': ['sequence', 'fabricTypeDisplay', 'location'],
             'k2-tab': ['sequence', 'fabricTypeDisplay', 'fabric', 'color'],
-            'k3-tab': ['sequence', 'fabricTypeDisplay', 'over', 'oi', 'lr'],
-            'k4-tab': ['sequence', 'fabricTypeDisplay'],
+            'k3-tab': ['sequence', 'fabricTypeDisplay', 'location', 'over', 'oi', 'lr'],
+            'k4-tab': ['sequence', 'fabricTypeDisplay', 'location', 'oi', 'lr'],
             'k5-tab': ['sequence', 'fabricTypeDisplay'],
         };
 
