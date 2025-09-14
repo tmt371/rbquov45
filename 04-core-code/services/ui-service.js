@@ -14,9 +14,8 @@ export class UIService {
         this.state.multiDeleteSelectedIndexes = new Set();
         this.state.locationInputValue = '';
         this.state.targetCell = null;
-        this.state.activeEditMode = null; // [MODIFIED] Replaces k1EditMode with a generic version
+        this.state.activeEditMode = null;
         
-        // --- [NEW] States for K2 Light-Filter feature ---
         this.state.lfSelectedRowIndexes = new Set();
         this.state.lfModifiedRowIndexes = new Set();
         
@@ -33,9 +32,8 @@ export class UIService {
         this.state.multiDeleteSelectedIndexes = new Set();
         this.state.locationInputValue = '';
         this.state.targetCell = null;
-        this.state.activeEditMode = null; // [MODIFIED] Reset the new state property
+        this.state.activeEditMode = null;
         
-        // --- [NEW] Reset states for K2 Light-Filter feature ---
         this.state.lfSelectedRowIndexes = new Set();
         this.state.lfModifiedRowIndexes = new Set();
     }
@@ -103,6 +101,14 @@ export class UIService {
         this.state.visibleColumns = columns;
     }
     
+    /**
+     * [NEW] Sets the active tab ID for the left panel.
+     * @param {string} tabId - e.g., 'k1-tab', 'k2-tab'.
+     */
+    setActiveTab(tabId) {
+        this.state.activeTabId = tabId;
+    }
+
     setLocationInputValue(value) {
         this.state.locationInputValue = value;
     }
@@ -114,8 +120,6 @@ export class UIService {
     setActiveEditMode(mode) {
         this.state.activeEditMode = mode;
     }
-
-    // --- [NEW] Methods for K2 Light-Filter feature state ---
 
     toggleLFSelection(rowIndex) {
         if (this.state.lfSelectedRowIndexes.has(rowIndex)) {

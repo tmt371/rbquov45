@@ -26,6 +26,17 @@ export class InputHandler {
     }
 
     _setupLeftPanelInputs() {
+        // --- [NEW] Tab Switching Logic ---
+        const tabContainer = document.querySelector('.tab-container');
+        if (tabContainer) {
+            tabContainer.addEventListener('click', (event) => {
+                const target = event.target.closest('.tab-button');
+                if (target && !target.disabled) {
+                    this.eventAggregator.publish('userSwitchedTab', { tabId: target.id });
+                }
+            });
+        }
+
         const setupFocusButton = (buttonId, column) => {
             const button = document.getElementById(buttonId);
             if (button) {

@@ -30,6 +30,7 @@ export class UIManager {
         this.lfDelButton = document.getElementById('btn-lf-del');
         
         this.tabButtons = document.querySelectorAll('.tab-button');
+        this.tabContents = document.querySelectorAll('.tab-content');
 
         // --- 實例化所有子元件 ---
         const tableElement = document.getElementById('results-table');
@@ -77,13 +78,34 @@ export class UIManager {
     }
 
     _updateTabStates(uiState) {
-        const { activeEditMode } = uiState;
+        const { activeEditMode, activeTabId } = uiState;
         const isInEditMode = activeEditMode !== null;
-        
+
+        // Find the active tab's target content ID
+        const activeTabButton = document.getElementById(activeTabId);
+        const activeContentTarget = activeTabButton ? activeTabButton.dataset.tabTarget : null;
+
         this.tabButtons.forEach(button => {
+            button.classList.toggle('active', button.id === activeTabId);
             // Disable all tabs if any edit mode is active.
             button.disabled = isInEditMode;
         });
+
+        this.tabContents.forEach(content => {
+            // The content is active if its ID matches the target from the active tab button
+            const isThisContentActive = activeContentTarget && `#${content.id}` === activeContentTarget;
+            content.classList.toggle('active', isThisContentActive);
+        });
+        
+        // Update panel background color based on active tab
+        const panelBgColors = {
+            'k1-tab': 'var(--k1-bg-color)',
+            'k2-tab': 'var(--k2-bg-color)',
+            'k3-tab': 'var(--k3-bg-color)',
+            'k4-tab': 'var(--k4-bg-color)',
+            'k5-tab': 'var(--k5-bg-color)',
+        };
+        this.leftPanel.style.backgroundColor = panelBgColors[activeTabId] || 'var(--k1-bg-color)';
     }
 
     _updatePanelButtonStates(state) {
@@ -146,31 +168,8 @@ export class UIManager {
             leftPanel.style.height = totalKeysHeight + 'px';
         };
         
-        this.tabButtons.forEach(tab => {
-            tab.addEventListener('click', (event) => {
-                if (tab.disabled) {
-                    event.stopPropagation();
-                    return;
-                }
-                this.tabButtons.forEach(t => t.classList.remove('active'));
-                const tabContents = this.leftPanel.querySelectorAll('.tab-content');
-                tabContents.forEach(c => c.classList.remove('active'));
-                
-                tab.classList.add('active');
-                const targetContent = document.querySelector(tab.dataset.tabTarget);
-
-                if(targetContent) {
-                    targetContent.classList.add('active');
-                    const panelBgColors = {
-                        '#k1-content': 'var(--k1-bg-color)', '#k2-content': 'var(--k2-bg-color)',
-                        '#k3-content': 'var(--k3-bg-color)', '#k4-content': 'var(--k4-bg-color)',
-                        '#k5-content': 'var(--k5-bg-color)',
-                    };
-                    this.leftPanel.style.backgroundColor = panelBgColors[tab.dataset.tabTarget];
-                }
-            });
-        });
-
+        // [REMOVED] Event listener logic is now handled by InputHandler
+        
         adjustLayout();
         window.addEventListener('resize', adjustLayout);
     }

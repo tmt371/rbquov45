@@ -7,16 +7,17 @@
 
 export const initialState = {
     ui: {
-        // --- [NEW] SPA View Management ---
+        // --- SPA View Management ---
         currentView: 'QUICK_QUOTE', 
         visibleColumns: ['sequence', 'width', 'height', 'TYPE', 'Price'],
+        activeTabId: 'k1-tab', // Tracks the active tab in the left panel
 
-        // --- Existing UI State ---
+        // --- Input & Selection State ---
         inputValue: '',
         inputMode: 'width',
         isEditing: false,
         activeCell: { rowIndex: 0, column: 'width' },
-        selectedRowIndex: null, // 用於追蹤被項次選中的行
+        selectedRowIndex: null,
     },
     quoteData: {
         // 核心項目列表

@@ -63,6 +63,7 @@ export class AppController {
         // Global App-Level Events
         this.eventAggregator.subscribe('userNavigatedToDetailView', () => this._handleNavigationToDetailView());
         this.eventAggregator.subscribe('userNavigatedToQuickQuoteView', () => this._handleNavigationToQuickQuoteView());
+        this.eventAggregator.subscribe('userSwitchedTab', (data) => this._handleTabSwitch(data));
         this.eventAggregator.subscribe('userRequestedLoad', () => this._handleUserRequestedLoad());
         this.eventAggregator.subscribe('userChoseLoadDirectly', () => this._handleLoadDirectly());
         this.eventAggregator.subscribe('fileLoaded', (data) => this._handleFileLoad(data));
@@ -74,21 +75,40 @@ export class AppController {
         const currentView = this.uiService.getState().currentView;
         if (currentView === 'QUICK_QUOTE') {
             this.uiService.setCurrentView('DETAIL_CONFIG');
-            // [FIX] Initialize the panel state immediately after view switch
             if (this.detailConfigView) {
                 this.detailConfigView.initializePanelState();
             }
+             // [NEW] Set columns for default tab (K1) on first entry
+            this._handleTabSwitch({ tabId: 'k1-tab' });
         } else {
             this.uiService.setCurrentView('QUICK_QUOTE');
             this.uiService.setVisibleColumns(initialState.ui.visibleColumns);
+            this._publishStateChange();
         }
-        this._publishStateChange();
     }
 
     _handleNavigationToQuickQuoteView() {
         this.uiService.setCurrentView('QUICK_QUOTE');
         this.uiService.setVisibleColumns(initialState.ui.visibleColumns);
         this._publishStateChange();
+    }
+
+    _handleTabSwitch({ tabId }) {
+        const TAB_COLUMN_MAP = {
+            'k1-tab': ['sequence', 'fabricTypeDisplay', 'location'],
+            'k2-tab': ['sequence', 'fabricTypeDisplay', 'fabric', 'color'],
+            'k3-tab': ['sequence', 'fabricTypeDisplay', 'over', 'oi', 'lr'],
+            'k4-tab': ['sequence', 'fabricTypeDisplay'],
+            'k5-tab': ['sequence', 'fabricTypeDisplay'],
+        };
+
+        const newColumns = TAB_COLUMN_MAP[tabId];
+
+        if (newColumns) {
+            this.uiService.setActiveTab(tabId);
+            this.uiService.setVisibleColumns(newColumns);
+            this._publishStateChange();
+        }
     }
 
     _handleUserRequestedLoad() {
