@@ -56,6 +56,8 @@ export class AppController {
         this.eventAggregator.subscribe('editableCellBlurred', delegateToView('_handleCellInputBlur'));
         this.eventAggregator.subscribe('editableCellEnterPressed', delegateToView('_handleCellInputEnter'));
         this.eventAggregator.subscribe('locationInputEnterPressed', delegateToView('handleLocationInputEnter'));
+        this.eventAggregator.subscribe('userRequestedLFEditMode', delegateToView('handleLFEditRequest'));
+        this.eventAggregator.subscribe('userRequestedLFDeleteMode', delegateToView('handleLFDeleteRequest'));
 
 
         // Global App-Level Events

@@ -24,24 +24,21 @@ export class DetailConfigView {
         const currentMode = this.uiService.getState().activeEditMode;
 
         if (column === 'location') {
-            // Toggling 'location' mode within K1
             const newMode = currentMode === 'K1' ? null : 'K1';
             this._toggleLocationEditMode(newMode);
             return;
         }
 
         if (column === 'fabric') {
-            // Toggling 'fabric' mode within K2
             const newMode = currentMode === 'K2' ? null : 'K2';
             this.uiService.setActiveEditMode(newMode);
 
             if (newMode) {
-                this._resyncFabricAndColorData();
+                // [MODIFIED] FC button activation logic
                 this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'fabric', 'color']);
                 this._updatePanelInputsState(); 
                 this.uiService.setActiveCell(null, null);
             } else {
-                // When exiting fabric mode, revert to a default detail view
                 this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'location']);
             }
         } 
@@ -98,37 +95,64 @@ export class DetailConfigView {
         this.publish();
     }
 
-    handlePanelInputEnter({ type, field }) {
-        const inputElement = document.querySelector(`.panel-input[data-type="${type}"][data-field="${field}"]`);
-        if (inputElement) {
-            this.quoteService.batchUpdatePropertyByType(type, field, inputElement.value);
+    handlePanelInputEnter({ type, field, value }) {
+        const { activeEditMode, lfSelectedRowIndexes } = this.uiService.getState();
+
+        if (activeEditMode === 'K2_LF_SELECT') {
+            const [lfFname, lfColor] = value.split(',');
+            this.quoteService.batchUpdateLFProperties(lfSelectedRowIndexes, lfFname, lfColor);
+            this.uiService.addLFModifiedRows(lfSelectedRowIndexes);
+            this.uiService.clearLFSelection();
+            this.uiService.setActiveEditMode(null);
+            this._updatePanelInputsState();
             this.publish();
+            return;
         }
+        
+        this.quoteService.batchUpdatePropertyByType(type, field, value);
+        this.publish();
 
         const inputs = Array.from(document.querySelectorAll('.panel-input:not([disabled])'));
-        const currentIndex = inputs.indexOf(inputElement);
+        const activeElement = document.activeElement;
+        const currentIndex = inputs.indexOf(activeElement);
         const nextInput = inputs[currentIndex + 1];
 
         if (nextInput) {
             nextInput.focus();
+            nextInput.select();
         } else {
-            inputElement.blur();
+            activeElement.blur();
+            this.uiService.setActiveEditMode(null); // Exit FC mode after last input
+            this.publish();
         }
     }
 
     handleSequenceCellClick({ rowIndex }) {
         const { activeEditMode } = this.uiService.getState();
-        if (activeEditMode === 'K1') { // Check for the generic K1 edit mode
+
+        if (activeEditMode === 'K2_LF_SELECT' || activeEditMode === 'K2_LF_DELETE_SELECT') {
+            const item = this.quoteService.getItems()[rowIndex];
+            if (activeEditMode === 'K2_LF_SELECT' && item.fabricType !== 'BO1') {
+                this.eventAggregator.publish('showNotification', { message: 'Only items with TYPE "BO1" can be selected.', type: 'error' });
+                return;
+            }
+            this.uiService.toggleLFSelection(rowIndex);
+            
+            if (activeEditMode === 'K2_LF_SELECT') {
+                this._updatePanelInputsState(); // Re-check if LF input should be enabled
+            }
+        } else if (activeEditMode === 'K1') {
             this.uiService.setTargetCell({ rowIndex, column: 'location' });
             const item = this.quoteService.getItems()[rowIndex];
             this.uiService.setLocationInputValue(item.location || '');
-            this.publish();
+            
             const locationInput = document.getElementById('location-input-box');
             setTimeout(() => {
                 locationInput?.focus();
                 locationInput?.select();
             }, 0);
         }
+        this.publish();
     }
 
     handleTableCellInteraction({ rowIndex, column }) {
@@ -145,33 +169,80 @@ export class DetailConfigView {
         }
     }
 
+    handleLFEditRequest() {
+        const { activeEditMode } = this.uiService.getState();
+        
+        if (activeEditMode === 'K2_LF_SELECT') {
+            this.uiService.setActiveEditMode(null);
+            this.uiService.clearLFSelection();
+            this._updatePanelInputsState();
+        } else {
+            this.uiService.setActiveEditMode('K2_LF_SELECT');
+            this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'fabric', 'color']);
+            this.eventAggregator.publish('showNotification', { message: 'Please select the items with TYPE \'BO1\' to edit the fabric name and color settings for the roller blinds.' });
+        }
+        this.publish();
+    }
+
+    handleLFDeleteRequest() {
+        const { activeEditMode } = this.uiService.getState();
+        
+        if (activeEditMode === 'K2_LF_DELETE_SELECT') {
+            const { lfSelectedRowIndexes } = this.uiService.getState();
+            if (lfSelectedRowIndexes.size > 0) {
+                this.quoteService.removeLFProperties(lfSelectedRowIndexes);
+                this.uiService.removeLFModifiedRows(lfSelectedRowIndexes);
+                this.eventAggregator.publish('showNotification', { message: 'Please continue to edit the fabric name and color of the roller blinds.' });
+            }
+            this.uiService.setActiveEditMode(null);
+            this.uiService.clearLFSelection();
+        } else {
+            this.uiService.setActiveEditMode('K2_LF_DELETE_SELECT');
+            this.eventAggregator.publish('showNotification', { message: 'Please select the roller blinds for which you want to cancel the Light-Filter fabric setting. After selection, click the LF-Del button again.' });
+        }
+        this.publish();
+    }
+
     _updatePanelInputsState() {
+        const { activeEditMode, lfSelectedRowIndexes } = this.uiService.getState();
         const items = this.quoteService.getItems();
         const presentTypes = new Set(items.map(item => item.fabricType).filter(Boolean));
         
         const allPanelInputs = document.querySelectorAll('.panel-input');
-        allPanelInputs.forEach(input => {
-            if (input.dataset.type !== 'LF') {
-                input.disabled = !presentTypes.has(input.dataset.type);
+        
+        if (activeEditMode === 'K2') { // FC Mode
+            allPanelInputs.forEach(input => {
+                if (input.dataset.type !== 'LF') {
+                    input.disabled = !presentTypes.has(input.dataset.type);
+                } else {
+                    input.disabled = true;
+                }
+            });
+            const firstEnabledInput = document.querySelector('.panel-input:not([disabled])');
+            if (firstEnabledInput) {
+                setTimeout(() => {
+                    firstEnabledInput.focus();
+                    firstEnabledInput.select();
+                }, 0);
             }
-        });
-
-        const firstEnabledInput = document.querySelector('.panel-input:not([disabled])');
-        if (firstEnabledInput) {
-            setTimeout(() => firstEnabledInput.focus(), 0);
+        } else if (activeEditMode === 'K2_LF_SELECT') { // LF Selection Mode
+            allPanelInputs.forEach(input => {
+                const isLFRow = input.dataset.type === 'LF';
+                const hasSelection = lfSelectedRowIndexes.size > 0;
+                input.disabled = !(isLFRow && hasSelection);
+            });
+            const firstEnabledInput = document.querySelector('.panel-input:not([disabled])');
+            if (firstEnabledInput) {
+                setTimeout(() => {
+                    firstEnabledInput.focus();
+                    firstEnabledInput.select();
+                }, 0);
+            }
+        } else { // No active mode
+             allPanelInputs.forEach(input => {
+                input.disabled = true;
+                input.value = '';
+            });
         }
-    }
-
-    _resyncFabricAndColorData() {
-        const enabledInputs = document.querySelectorAll('.panel-input:not([disabled])');
-        enabledInputs.forEach(input => {
-            const type = input.dataset.type;
-            const field = input.dataset.field;
-            const value = input.value;
-            if (value) {
-                this.quoteService.batchUpdatePropertyByType(type, field, value);
-            }
-        });
-        this.publish();
     }
 }

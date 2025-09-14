@@ -46,9 +46,23 @@ export class InputHandler {
 
         // K1 Tab Buttons
         setupFocusButton('btn-focus-location', 'location');
-        setupFocusButton('btn-focus-fabric', 'fabric');
 
         // K2 Tab Buttons
+        setupFocusButton('btn-focus-fabric', 'fabric');
+        const lfButton = document.getElementById('btn-light-filter');
+        if (lfButton) {
+            lfButton.addEventListener('click', () => {
+                this.eventAggregator.publish('userRequestedLFEditMode');
+            });
+        }
+        const lfDelButton = document.getElementById('btn-lf-del');
+        if (lfDelButton) {
+            lfDelButton.addEventListener('click', () => {
+                this.eventAggregator.publish('userRequestedLFDeleteMode');
+            });
+        }
+
+        // K3 Tab Buttons
         setupFocusButton('btn-focus-over', 'over');
         setupBatchButton('btn-batch-over-o', 'over', 'O');
         setupBatchButton('btn-batch-over-normal', 'over', '');

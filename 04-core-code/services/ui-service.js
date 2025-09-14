@@ -16,6 +16,10 @@ export class UIService {
         this.state.targetCell = null;
         this.state.activeEditMode = null; // [MODIFIED] Replaces k1EditMode with a generic version
         
+        // --- [NEW] States for K2 Light-Filter feature ---
+        this.state.lfSelectedRowIndexes = new Set();
+        this.state.lfModifiedRowIndexes = new Set();
+        
         console.log("UIService Initialized.");
     }
 
@@ -30,6 +34,10 @@ export class UIService {
         this.state.locationInputValue = '';
         this.state.targetCell = null;
         this.state.activeEditMode = null; // [MODIFIED] Reset the new state property
+        
+        // --- [NEW] Reset states for K2 Light-Filter feature ---
+        this.state.lfSelectedRowIndexes = new Set();
+        this.state.lfModifiedRowIndexes = new Set();
     }
 
     setActiveCell(rowIndex, column) {
@@ -102,13 +110,38 @@ export class UIService {
     setTargetCell(cell) { // cell should be { rowIndex, column } or null
         this.state.targetCell = cell;
     }
-    
-    // --- [MODIFIED] Method for the new generic edit mode state ---
-    /**
-     * Sets the active editing mode for any panel tab.
-     * @param {string|null} mode - 'K1', 'K2', etc., or null.
-     */
+
     setActiveEditMode(mode) {
         this.state.activeEditMode = mode;
+    }
+
+    // --- [NEW] Methods for K2 Light-Filter feature state ---
+
+    toggleLFSelection(rowIndex) {
+        if (this.state.lfSelectedRowIndexes.has(rowIndex)) {
+            this.state.lfSelectedRowIndexes.delete(rowIndex);
+        } else {
+            this.state.lfSelectedRowIndexes.add(rowIndex);
+        }
+    }
+
+    clearLFSelection() {
+        this.state.lfSelectedRowIndexes.clear();
+    }
+
+    addLFModifiedRows(rowIndexes) {
+        for (const index of rowIndexes) {
+            this.state.lfModifiedRowIndexes.add(index);
+        }
+    }
+
+    removeLFModifiedRows(rowIndexes) {
+        for (const index of rowIndexes) {
+            this.state.lfModifiedRowIndexes.delete(index);
+        }
+    }
+    
+    hasLFModifiedRows() {
+        return this.state.lfModifiedRowIndexes.size > 0;
     }
 }

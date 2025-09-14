@@ -72,7 +72,6 @@ export class TableComponent {
             const row = tbody.insertRow();
             row.dataset.rowIndex = index;
 
-            // --- [NEW] Add highlight class to the entire target row ---
             if (isLocationEditMode && targetCell && index === targetCell.rowIndex) {
                 row.classList.add('target-row-highlight');
             }
@@ -91,17 +90,24 @@ export class TableComponent {
     }
 
     _renderCellContent(cell, key, item, index, state) {
-        const { activeCell, selectedRowIndex, isMultiDeleteMode, multiDeleteSelectedIndexes, targetCell } = state.ui;
+        const { activeCell, selectedRowIndex, isMultiDeleteMode, multiDeleteSelectedIndexes, targetCell, lfSelectedRowIndexes, lfModifiedRowIndexes } = state.ui;
 
         if (targetCell && index === targetCell.rowIndex && key === targetCell.column) {
             cell.classList.add('target-cell');
+        }
+
+        if (lfModifiedRowIndexes.has(index) && (key === 'fabric' || key === 'color')) {
+            cell.classList.add('is-lf-modified');
         }
 
         switch (key) {
             case 'sequence':
                 cell.textContent = index + 1;
                 const isLastRowEmpty = (index === state.quoteData.rollerBlindItems.length - 1) && (!item.width && !item.height);
-                if (isMultiDeleteMode) {
+                
+                if (lfSelectedRowIndexes.has(index)) {
+                    cell.classList.add('lf-selection-highlight');
+                } else if (isMultiDeleteMode) {
                     if (isLastRowEmpty) cell.classList.add('selection-disabled');
                     else if (multiDeleteSelectedIndexes.has(index)) cell.classList.add('multi-selected-row');
                 } else if (index === selectedRowIndex) {
@@ -130,19 +136,11 @@ export class TableComponent {
             case 'fabric':
             case 'color':
                 cell.textContent = item[key] || '';
-                if (activeCell && index === activeCell.rowIndex && activeCell.column === key) {
-                    cell.classList.add('active-input-cell');
-                    cell.innerHTML = `<input type="text" value="${item[key] || ''}" class="editable-cell-input" data-row-index="${index}" data-column="${key}" />`;
-                    setTimeout(() => cell.querySelector('input').focus(), 0);
-                }
                 break;
             case 'over':
             case 'oi':
             case 'lr':
                 cell.textContent = item[key] || '';
-                if (activeCell && index === activeCell.rowIndex && activeCell.column === key) {
-                    cell.classList.add('active-input-cell');
-                }
                 break;
             case 'fabricTypeDisplay':
                 cell.textContent = item.fabricType || '';

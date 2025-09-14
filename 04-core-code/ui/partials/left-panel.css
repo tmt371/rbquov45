@@ -176,3 +176,15 @@
     background-color: #e9ecef;
     cursor: not-allowed;
 }
+
+/* --- [NEW] K2 Light-Filter Feature Styles for Main Table --- */
+/* Style for sequence cell when selected in LF mode */
+.results-table td.lf-selection-highlight {
+    background-color: #fffacd; /* Light Yellow */
+}
+
+/* Style for F-Name/F-Color cells modified by LF feature */
+.results-table td.is-lf-modified {
+    background-color: #ffccd5; /* Light Pink */
+    box-shadow: inset 0 0 0 1px #e5a0aa;
+}

@@ -134,14 +134,6 @@ export class QuoteService {
         return changed;
     }
     
-    // --- [NEW] Method for batch updating a property based on fabricType ---
-    /**
-     * Updates a property for all items that match a specific fabricType.
-     * @param {string} type The fabricType to match (e.g., 'BO', 'SN').
-     * @param {string} property The property key to update (e.g., 'fabric', 'color').
-     * @param {*} value The new value to set.
-     * @returns {boolean} True if any value was changed.
-     */
     batchUpdatePropertyByType(type, property, value) {
         const items = this._getItems();
         let changed = false;
@@ -153,6 +145,34 @@ export class QuoteService {
                 }
             }
         });
+        return changed;
+    }
+
+    /**
+     * [NEW] Batch updates properties specifically for the Light-Filter feature.
+     * @param {Set<number>} rowIndexes - A set of row indexes to update.
+     * @param {string} fabricName - The new base fabric name.
+     * @param {string} fabricColor - The new fabric color.
+     * @returns {boolean} - True if any item was changed.
+     */
+    batchUpdateLFProperties(rowIndexes, fabricName, fabricColor) {
+        const items = this._getItems();
+        const newFabricName = `L-Filter ${fabricName}`;
+        let changed = false;
+
+        for (const index of rowIndexes) {
+            const item = items[index];
+            if (item) {
+                if (item.fabric !== newFabricName) {
+                    item.fabric = newFabricName;
+                    changed = true;
+                }
+                if (item.color !== fabricColor) {
+                    item.color = fabricColor;
+                    changed = true;
+                }
+            }
+        }
         return changed;
     }
 
