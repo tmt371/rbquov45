@@ -271,7 +271,7 @@ html, body {
     }
 
     .app-container:not(.detail-view-active) .results-table .col-sequence {
-        width: 24px;
+        width: 18px;
     }
     
     .app-container:not(.detail-view-active) .results-table .col-w,
