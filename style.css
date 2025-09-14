@@ -261,8 +261,17 @@ html, body {
 /* --- Responsive Adjustments for Mobile Devices --- */
 @media (max-width: 600px) {
     /* --- Specific adjustments for Quick Quote View (Table 1) on mobile --- */
+    .app-container:not(.detail-view-active) .results-panel {
+        padding: 0 16px 20px 16px; /* Reduce side padding */
+    }
+
+    .app-container:not(.detail-view-active) .results-table th,
+    .app-container:not(.detail-view-active) .results-table td {
+        padding: 8px 4px; /* Reduce cell horizontal padding */
+    }
+
     .app-container:not(.detail-view-active) .results-table .col-sequence {
-        width: 24px; /* Further decrease width to eliminate scrollbar */
+        width: 24px;
     }
     
     .app-container:not(.detail-view-active) .results-table .col-w,
