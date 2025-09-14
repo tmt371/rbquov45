@@ -51,13 +51,15 @@ export class AppController {
 
         // Detail Config View Events
         this.eventAggregator.subscribe('userRequestedFocusMode', delegateToView('handleFocusModeRequest'));
-        this.eventAggregator.subscribe('userRequestedBatchUpdate', delegateToView('handleBatchUpdateRequest'));
         this.eventAggregator.subscribe('panelInputEnterPressed', delegateToView('handlePanelInputEnter'));
         this.eventAggregator.subscribe('editableCellBlurred', delegateToView('_handleCellInputBlur'));
         this.eventAggregator.subscribe('editableCellEnterPressed', delegateToView('_handleCellInputEnter'));
         this.eventAggregator.subscribe('locationInputEnterPressed', delegateToView('handleLocationInputEnter'));
         this.eventAggregator.subscribe('userRequestedLFEditMode', delegateToView('handleLFEditRequest'));
         this.eventAggregator.subscribe('userRequestedLFDeleteMode', delegateToView('handleLFDeleteRequest'));
+        // [NEW] K3 Refactored Events
+        this.eventAggregator.subscribe('userToggledK3EditMode', delegateToView('handleToggleK3EditMode'));
+        this.eventAggregator.subscribe('userRequestedBatchCycle', delegateToView('handleBatchCycle'));
 
 
         // Global App-Level Events

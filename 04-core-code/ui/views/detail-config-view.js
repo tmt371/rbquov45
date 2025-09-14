@@ -10,12 +10,6 @@ export class DetailConfigView {
         this.eventAggregator = eventAggregator;
         this.publish = publishStateChangeCallback;
 
-        this.propertyOptions = {
-            over: ['', 'O'],
-            oi: ['', 'IN', 'OUT'],
-            lr: ['', 'L', 'R']
-        };
-
         console.log("DetailConfigView Initialized (Pure Logic View).");
     }
 
@@ -122,14 +116,8 @@ export class DetailConfigView {
         }
     }
 
-
-    handleBatchUpdateRequest({ column, value }) {
-        this.quoteService.batchUpdateProperty(column, value);
-        this.publish();
-    }
-
     handlePanelInputEnter({ type, field, value }) {
-        const { activeEditMode, lfSelectedRowIndexes } = this.uiService.getState();
+        const { lfSelectedRowIndexes } = this.uiService.getState();
         
         if (type === 'LF') {
             if (field === 'fabric') {
@@ -167,7 +155,6 @@ export class DetailConfigView {
         } else {
             activeElement.blur();
             this.uiService.setActiveEditMode(null);
-            // [FIX] Directly call the internal panel update method before publishing
             this._updatePanelInputsState();
             this.publish();
         }
@@ -211,16 +198,24 @@ export class DetailConfigView {
     }
 
     handleTableCellInteraction({ rowIndex, column }) {
-        if (this.propertyOptions[column]) {
+        const { activeEditMode } = this.uiService.getState();
+
+        if (activeEditMode !== 'K3') return;
+
+        const sequences = {
+            over: ['', 'O'],
+            oi: ['', 'IN', 'OUT'],
+            lr: ['', 'L', 'R']
+        };
+
+        if (sequences[column]) {
             this.uiService.setActiveCell(rowIndex, column);
-            const options = this.propertyOptions[column];
-            this.quoteService.cycleItemProperty(rowIndex, column, options);
+            this.quoteService.cycleItemProperty(rowIndex, column, sequences[column]);
             this.publish();
             setTimeout(() => {
                 this.uiService.setActiveCell(null, null);
                 this.publish();
-            }, 100);
-            return;
+            }, 150);
         }
     }
 
@@ -258,6 +253,36 @@ export class DetailConfigView {
         this.publish();
     }
     
+    // --- [NEW] K3 Edit Mode and Batch Cycle Handlers ---
+
+    handleToggleK3EditMode() {
+        const currentMode = this.uiService.getState().activeEditMode;
+        const newMode = currentMode === 'K3' ? null : 'K3';
+        this.uiService.setActiveEditMode(newMode);
+        this.publish();
+    }
+
+    handleBatchCycle({ column }) {
+        const items = this.quoteService.getItems();
+        if (items.length === 0 || !items[0]) return;
+
+        const BATCH_CYCLE_SEQUENCES = {
+            over: ['O', ''],
+            oi: ['IN', 'OUT'],
+            lr: ['L', 'R']
+        };
+        const sequence = BATCH_CYCLE_SEQUENCES[column];
+        if (!sequence) return;
+        
+        const firstItemValue = items[0][column] || '';
+        const currentIndex = sequence.indexOf(firstItemValue);
+        const nextIndex = (currentIndex === -1) ? 0 : (currentIndex + 1) % sequence.length;
+        const nextValue = sequence[nextIndex];
+        
+        this.quoteService.batchUpdateProperty(column, nextValue);
+        this.publish();
+    }
+
     initializePanelState() {
         this._updatePanelInputsState();
     }

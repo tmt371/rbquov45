@@ -26,7 +26,6 @@ export class InputHandler {
     }
 
     _setupLeftPanelInputs() {
-        // --- [NEW] Tab Switching Logic ---
         const tabContainer = document.querySelector('.tab-container');
         if (tabContainer) {
             tabContainer.addEventListener('click', (event) => {
@@ -37,29 +36,21 @@ export class InputHandler {
             });
         }
 
-        const setupFocusButton = (buttonId, column) => {
-            const button = document.getElementById(buttonId);
-            if (button) {
-                button.addEventListener('click', () => {
-                    this.eventAggregator.publish('userRequestedFocusMode', { column });
-                });
-            }
-        };
-
-        const setupBatchButton = (buttonId, column, value) => {
-            const button = document.getElementById(buttonId);
-            if (button) {
-                button.addEventListener('click', () => {
-                    this.eventAggregator.publish('userRequestedBatchUpdate', { column, value });
-                });
-            }
-        };
-
         // K1 Tab Buttons
-        setupFocusButton('btn-focus-location', 'location');
-
+        const locationButton = document.getElementById('btn-focus-location');
+        if (locationButton) {
+            locationButton.addEventListener('click', () => {
+                this.eventAggregator.publish('userRequestedFocusMode', { column: 'location' });
+            });
+        }
+        
         // K2 Tab Buttons
-        setupFocusButton('btn-focus-fabric', 'fabric');
+        const fabricButton = document.getElementById('btn-focus-fabric');
+        if (fabricButton) {
+            fabricButton.addEventListener('click', () => {
+                this.eventAggregator.publish('userRequestedFocusMode', { column: 'fabric' });
+            });
+        }
         const lfButton = document.getElementById('btn-light-filter');
         if (lfButton) {
             lfButton.addEventListener('click', () => {
@@ -73,16 +64,26 @@ export class InputHandler {
             });
         }
 
-        // K3 Tab Buttons
-        setupFocusButton('btn-focus-over', 'over');
-        setupBatchButton('btn-batch-over-o', 'over', 'O');
-        setupBatchButton('btn-batch-over-normal', 'over', '');
-        setupFocusButton('btn-focus-oi', 'oi');
-        setupBatchButton('btn-batch-oi-in', 'oi', 'IN');
-        setupBatchButton('btn-batch-oi-out', 'oi', 'OUT');
-        setupFocusButton('btn-focus-lr', 'lr');
-        setupBatchButton('btn-batch-lr-l', 'lr', 'L');
-        setupBatchButton('btn-batch-lr-r', 'lr', 'R');
+        // K3 Tab Buttons [REFACTORED]
+        const editButton = document.getElementById('btn-k3-edit');
+        if (editButton) {
+            editButton.addEventListener('click', () => {
+                this.eventAggregator.publish('userToggledK3EditMode');
+            });
+        }
+
+        const setupBatchCycleButton = (buttonId, column) => {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                button.addEventListener('click', () => {
+                    this.eventAggregator.publish('userRequestedBatchCycle', { column });
+                });
+            }
+        };
+        setupBatchCycleButton('btn-batch-cycle-over', 'over');
+        setupBatchCycleButton('btn-batch-cycle-oi', 'oi');
+        setupBatchCycleButton('btn-batch-cycle-lr', 'lr');
+
 
         // K5 Tab Buttons
         const returnButton = document.getElementById('btn-return-form1');
