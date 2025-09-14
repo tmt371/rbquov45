@@ -197,21 +197,18 @@ export class DetailConfigView {
         this.publish();
     }
 
-    handleTableCellInteraction({ rowIndex, column }) {
+    // [FIX] Renamed from handleTableCellInteraction to handleTableCellClick
+    handleTableCellClick({ rowIndex, column }) {
         const { activeEditMode } = this.uiService.getState();
 
         if (activeEditMode !== 'K3') return;
 
-        const sequences = {
-            over: ['', 'O'],
-            oi: ['', 'IN', 'OUT'],
-            lr: ['', 'L', 'R']
-        };
-
-        if (sequences[column]) {
+        if (['over', 'oi', 'lr'].includes(column)) {
             this.uiService.setActiveCell(rowIndex, column);
-            this.quoteService.cycleItemProperty(rowIndex, column, sequences[column]);
+            // [FIX] Call the new service method with the correct logic
+            this.quoteService.cycleK3Property(rowIndex, column);
             this.publish();
+            
             setTimeout(() => {
                 this.uiService.setActiveCell(null, null);
                 this.publish();
@@ -253,8 +250,6 @@ export class DetailConfigView {
         this.publish();
     }
     
-    // --- [NEW] K3 Edit Mode and Batch Cycle Handlers ---
-
     handleToggleK3EditMode() {
         const currentMode = this.uiService.getState().activeEditMode;
         const newMode = currentMode === 'K3' ? null : 'K3';

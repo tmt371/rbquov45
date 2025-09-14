@@ -119,11 +119,46 @@ export class QuoteService {
         return false;
     }
 
+    /**
+     * [NEW] Cycles through K3 property values with specific, state-dependent logic.
+     * @param {number} rowIndex - The index of the item to update.
+     * @param {string} column - The property key to cycle ('over', 'oi', 'lr').
+     * @returns {boolean} - True if the value was changed.
+     */
+    cycleK3Property(rowIndex, column) {
+        const item = this._getItems()[rowIndex];
+        if (!item) return false;
+
+        const currentValue = item[column] || '';
+        let nextValue = currentValue;
+
+        switch (column) {
+            case 'over':
+                nextValue = (currentValue === '') ? 'O' : '';
+                break;
+            case 'oi':
+                if (currentValue === '') nextValue = 'IN';
+                else if (currentValue === 'IN') nextValue = 'OUT';
+                else if (currentValue === 'OUT') nextValue = 'IN';
+                break;
+            case 'lr':
+                if (currentValue === '') nextValue = 'L';
+                else if (currentValue === 'L') nextValue = 'R';
+                else if (currentValue === 'R') nextValue = 'L';
+                break;
+        }
+
+        if (item[column] !== nextValue) {
+            item[column] = nextValue;
+            return true;
+        }
+        return false;
+    }
+
     batchUpdateProperty(property, value) {
         const items = this._getItems();
         let changed = false;
         items.forEach(item => {
-            // Only update rows with data, not the final empty row
             if (item.width || item.height) {
                 if (item[property] !== value) {
                     item[property] = value;
@@ -169,12 +204,6 @@ export class QuoteService {
         return changed;
     }
     
-    /**
-     * [FIX] Clears the fabric and color for a set of row indexes.
-     * Used by the LF-Del functionality.
-     * @param {Set<number>} rowIndexes - A set of row indexes to clear.
-     * @returns {boolean} - True if any item was changed.
-     */
     removeLFProperties(rowIndexes) {
         const items = this._getItems();
         let changed = false;
