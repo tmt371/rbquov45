@@ -66,6 +66,10 @@ export class UIManager {
     }
 
     render(state) {
+        // [NEW] Add a class to the main container based on the current view
+        const isDetailView = state.ui.currentView === 'DETAIL_CONFIG';
+        this.appElement.classList.toggle('detail-view-active', isDetailView);
+
         this.tableComponent.render(state);
         this.summaryComponent.render(state.quoteData.summary, state.ui.isSumOutdated);
         
@@ -78,7 +82,7 @@ export class UIManager {
     }
 
     _updateTabStates(uiState) {
-        const { activeEditMode, activeTabId } = uiState;
+        const { activeEditMode, activeTabId } from uiState;
         const isInEditMode = activeEditMode !== null;
 
         // Find the active tab's target content ID
@@ -167,8 +171,6 @@ export class UIManager {
             const totalKeysHeight = (keyHeight * 4) + (gap * 3);
             leftPanel.style.height = totalKeysHeight + 'px';
         };
-        
-        // [REMOVED] Event listener logic is now handled by InputHandler
         
         adjustLayout();
         window.addEventListener('resize', adjustLayout);

@@ -258,27 +258,31 @@ html, body {
 .dialog-button.secondary:hover { background-color: #5a6268; }
 
 
-/* --- [NEW] Responsive Adjustments for Mobile Devices --- */
+/* --- [REFACTORED] Responsive Adjustments for Mobile Devices --- */
 @media (max-width: 600px) {
-    .results-table th,
-    .results-table td {
-        padding: 8px 4px;
+    /* These styles apply ONLY in the detail view (left panel open) */
+    .app-container.detail-view-active .results-table th,
+    .app-container.detail-view-active .results-table td {
+        font-size: 0.72em; /* Further reduce font size for all cells by ~15% */
+        padding: 8px 3px;    /* Reduce horizontal padding */
     }
 
-    .results-table th {
-        font-size: 0.85em;
+    .app-container.detail-view-active .results-table th {
+        font-size: 0.7em; /* Make header even smaller */
     }
     
-    .input-display-cell {
-        font-size: 1em;
+    .app-container.detail-view-active .input-display-cell {
+        font-size: 1em; /* Keep the input display readable */
     }
 
-    .results-table .col-sequence { width: 35px; }
-    .results-table .col-type { width: 60px; }
-    .results-table .col-over,
-    .results-table .col-oi,
-    .results-table .col-lr {
-        width: 55px;
+    /* Further reduce column widths by ~15-17% */
+    .app-container.detail-view-active .results-table .col-sequence { width: 29px; }
+    .app-container.detail-view-active .results-table .col-type { width: 50px; }
+    .app-container.detail-view-active .results-table .col-location { width: 102px; }
+    .app-container.detail-view-active .results-table .col-over,
+    .app-container.detail-view-active .results-table .col-oi,
+    .app-container.detail-view-active .results-table .col-lr {
+        width: 47px;
     }
 
     #function-panel {
