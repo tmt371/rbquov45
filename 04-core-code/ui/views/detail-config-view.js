@@ -32,7 +32,6 @@ export class DetailConfigView {
             const newMode = currentMode === 'K2' ? null : 'K2';
 
             if (newMode) {
-                // [NEW LOGIC #3] Overwrite Warning Check
                 const items = this.quoteService.getItems();
                 const { lfModifiedRowIndexes } = this.uiService.getState();
                 const hasConflict = items.some((item, index) => 
@@ -166,9 +165,10 @@ export class DetailConfigView {
             nextInput.focus();
             nextInput.select();
         } else {
-            // [FIX] Auto-exit after last input
             activeElement.blur();
             this.uiService.setActiveEditMode(null);
+            // [FIX] Directly call the internal panel update method before publishing
+            this._updatePanelInputsState();
             this.publish();
         }
     }
@@ -277,7 +277,6 @@ export class DetailConfigView {
                 if (type !== 'LF') {
                     input.disabled = !presentTypes.has(type);
                     if (!input.disabled) {
-                        // [NEW LOGIC #2] Pre-fill data
                         const itemWithData = items.find(item => item.fabricType === type && item[field]);
                         if (itemWithData) {
                             input.value = itemWithData[field];
