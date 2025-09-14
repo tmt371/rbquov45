@@ -66,7 +66,6 @@ export class UIManager {
     }
 
     render(state) {
-        // [NEW] Add a class to the main container based on the current view
         const isDetailView = state.ui.currentView === 'DETAIL_CONFIG';
         this.appElement.classList.toggle('detail-view-active', isDetailView);
 
@@ -82,26 +81,22 @@ export class UIManager {
     }
 
     _updateTabStates(uiState) {
-        const { activeEditMode, activeTabId } from uiState;
+        const { activeEditMode, activeTabId } = uiState;
         const isInEditMode = activeEditMode !== null;
 
-        // Find the active tab's target content ID
         const activeTabButton = document.getElementById(activeTabId);
         const activeContentTarget = activeTabButton ? activeTabButton.dataset.tabTarget : null;
 
         this.tabButtons.forEach(button => {
             button.classList.toggle('active', button.id === activeTabId);
-            // Disable all tabs if any edit mode is active.
             button.disabled = isInEditMode;
         });
 
         this.tabContents.forEach(content => {
-            // The content is active if its ID matches the target from the active tab button
             const isThisContentActive = activeContentTarget && `#${content.id}` === activeContentTarget;
             content.classList.toggle('active', isThisContentActive);
         });
         
-        // Update panel background color based on active tab
         const panelBgColors = {
             'k1-tab': 'var(--k1-bg-color)',
             'k2-tab': 'var(--k2-bg-color)',
@@ -113,9 +108,9 @@ export class UIManager {
     }
 
     _updatePanelButtonStates(state) {
-        const { activeEditMode } = state.ui;
+        // [FIX] Correctly destructure variables from the state object
+        const { activeEditMode, locationInputValue, lfModifiedRowIndexes } = state.ui;
         const { rollerBlindItems } = state.quoteData;
-        const { locationInputValue, lfModifiedRowIndexes } = state.ui;
 
         // --- K1 Location Input State ---
         if (this.locationInput) {
@@ -133,13 +128,11 @@ export class UIManager {
         const isLFDeleteMode = activeEditMode === 'K2_LF_DELETE_SELECT';
         const isAnyK2ModeActive = isFCMode || isLFSelectMode || isLFDeleteMode;
 
-        // Set active classes based on current mode
         if (this.locationButton) this.locationButton.classList.toggle('active', activeEditMode === 'K1');
         if (this.fabricColorButton) this.fabricColorButton.classList.toggle('active', isFCMode);
         if (this.lfButton) this.lfButton.classList.toggle('active', isLFSelectMode);
         if (this.lfDelButton) this.lfDelButton.classList.toggle('active', isLFDeleteMode);
 
-        // Set disabled states
         const hasBO1 = rollerBlindItems.some(item => item.fabricType === 'BO1');
         const hasLFModified = lfModifiedRowIndexes.size > 0;
 
