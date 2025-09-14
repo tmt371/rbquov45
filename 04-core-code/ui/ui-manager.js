@@ -20,9 +20,14 @@ export class UIManager {
         this.clearButton = clearButtonOnKeyboard;
         this.leftPanel = document.getElementById('left-panel');
         
+        // K1 Panel
         this.locationButton = document.getElementById('btn-focus-location');
-        this.fabricColorButton = document.getElementById('btn-focus-fabric');
         this.locationInput = document.getElementById('location-input-box');
+        
+        // K2 Panel
+        this.fabricColorButton = document.getElementById('btn-focus-fabric');
+        this.lfButton = document.getElementById('btn-light-filter');
+        this.lfDelButton = document.getElementById('btn-lf-del');
         
         this.tabButtons = document.querySelectorAll('.tab-button');
 
@@ -65,7 +70,7 @@ export class UIManager {
         
         this._updateButtonStates(state);
         this._updateLeftPanelState(state.ui.currentView);
-        this._updatePanelButtonStates(state.ui);
+        this._updatePanelButtonStates(state);
         this._updateTabStates(state.ui);
         
         this._scrollToActiveCell(state);
@@ -75,29 +80,18 @@ export class UIManager {
         const { activeEditMode } = uiState;
         const isInEditMode = activeEditMode !== null;
         
-        let activeTabId = '';
-        if (isInEditMode) {
-            // Determine which tab is active based on the mode
-            if (activeEditMode === 'K1') {
-                activeTabId = 'k1-tab';
-            } else if (activeEditMode === 'K2') {
-                activeTabId = 'k2-tab';
-            }
-            // Add other cases for K3, K4 etc. here in the future
-        }
-        
         this.tabButtons.forEach(button => {
-            if (isInEditMode) {
-                button.disabled = button.id !== activeTabId;
-            } else {
-                button.disabled = false;
-            }
+            // Disable all tabs if any edit mode is active.
+            button.disabled = isInEditMode;
         });
     }
 
-    _updatePanelButtonStates(uiState) {
-        const { activeEditMode, locationInputValue } = uiState;
+    _updatePanelButtonStates(state) {
+        const { activeEditMode } = state.ui;
+        const { rollerBlindItems } = state.quoteData;
+        const { locationInputValue, lfModifiedRowIndexes } = state.ui;
 
+        // --- K1 Location Input State ---
         if (this.locationInput) {
             const isLocationActive = activeEditMode === 'K1';
             this.locationInput.disabled = !isLocationActive;
@@ -107,15 +101,26 @@ export class UIManager {
             }
         }
         
-        if (this.locationButton && this.fabricColorButton) {
-            this.locationButton.classList.toggle('active', activeEditMode === 'K1');
-            this.fabricColorButton.classList.toggle('active', activeEditMode === 'K2');
+        // --- K1 & K2 Button Active/Disabled States ---
+        const isFCMode = activeEditMode === 'K2';
+        const isLFSelectMode = activeEditMode === 'K2_LF_SELECT';
+        const isLFDeleteMode = activeEditMode === 'K2_LF_DELETE_SELECT';
+        const isAnyK2ModeActive = isFCMode || isLFSelectMode || isLFDeleteMode;
 
-            this.locationButton.disabled = (activeEditMode === 'K2');
-            this.fabricColorButton.disabled = (activeEditMode === 'K1');
-            this.locationButton.classList.toggle('disabled-by-mode', activeEditMode === 'K2');
-            this.fabricColorButton.classList.toggle('disabled-by-mode', activeEditMode === 'K1');
-        }
+        // Set active classes based on current mode
+        if (this.locationButton) this.locationButton.classList.toggle('active', activeEditMode === 'K1');
+        if (this.fabricColorButton) this.fabricColorButton.classList.toggle('active', isFCMode);
+        if (this.lfButton) this.lfButton.classList.toggle('active', isLFSelectMode);
+        if (this.lfDelButton) this.lfDelButton.classList.toggle('active', isLFDeleteMode);
+
+        // Set disabled states
+        const hasBO1 = rollerBlindItems.some(item => item.fabricType === 'BO1');
+        const hasLFModified = lfModifiedRowIndexes.size > 0;
+
+        if (this.locationButton) this.locationButton.disabled = isAnyK2ModeActive;
+        if (this.fabricColorButton) this.fabricColorButton.disabled = activeEditMode !== null && !isFCMode;
+        if (this.lfButton) this.lfButton.disabled = (activeEditMode !== null && !isLFSelectMode) || !hasBO1;
+        if (this.lfDelButton) this.lfDelButton.disabled = (activeEditMode !== null && !isLFDeleteMode) || !hasLFModified;
     }
 
     _initializeLeftPanelLayout() {

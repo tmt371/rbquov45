@@ -38,7 +38,8 @@ export class DetailConfigView {
                 this._updatePanelInputsState(); 
                 this.uiService.setActiveCell(null, null);
             } else {
-                this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'location']);
+                // [FIX #1 & #2] On exiting FC mode, just disable the panel. Do not change columns.
+                this._updatePanelInputsState();
             }
         } 
         this.publish();
@@ -96,18 +97,31 @@ export class DetailConfigView {
 
     handlePanelInputEnter({ type, field, value }) {
         const { activeEditMode, lfSelectedRowIndexes } = this.uiService.getState();
-        
+
+        // [FIX #4] Reworked LF workflow to handle two-step input
         if (type === 'LF') {
-            const [lfFname, lfColor] = [value, document.querySelector('input[data-type="LF"][data-field="color"]').value];
-            this.quoteService.batchUpdateLFProperties(lfSelectedRowIndexes, lfFname, lfColor);
-            this.uiService.addLFModifiedRows(lfSelectedRowIndexes);
-            this.uiService.clearLFSelection();
-            this.uiService.setActiveEditMode(null);
-            this._updatePanelInputsState();
-            this.publish();
+            if (field === 'fabric') {
+                const nextInput = document.querySelector('input[data-type="LF"][data-field="color"]');
+                if (nextInput) {
+                    nextInput.focus();
+                    nextInput.select();
+                }
+            } else if (field === 'color') {
+                const fNameInput = document.querySelector('input[data-type="LF"][data-field="fabric"]');
+                const fNameValue = fNameInput ? fNameInput.value : '';
+                const fColorValue = value;
+
+                this.quoteService.batchUpdateLFProperties(lfSelectedRowIndexes, fNameValue, fColorValue);
+                this.uiService.addLFModifiedRows(lfSelectedRowIndexes);
+                this.uiService.clearLFSelection();
+                this.uiService.setActiveEditMode(null);
+                this._updatePanelInputsState();
+                this.publish();
+            }
             return;
         }
-
+        
+        // --- FC Workflow ---
         this.quoteService.batchUpdatePropertyByType(type, field, value);
         this.publish();
 
