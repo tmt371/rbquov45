@@ -16,7 +16,6 @@ export class DetailConfigView {
             lr: ['', 'L', 'R']
         };
 
-        // All direct DOM event listeners are removed from the view.
         console.log("DetailConfigView Initialized (Pure Logic View).");
     }
 
@@ -31,17 +30,52 @@ export class DetailConfigView {
 
         if (column === 'fabric') {
             const newMode = currentMode === 'K2' ? null : 'K2';
-            this.uiService.setActiveEditMode(newMode);
 
             if (newMode) {
-                this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'fabric', 'color']);
-                this._updatePanelInputsState(); 
-                this.uiService.setActiveCell(null, null);
+                // [NEW LOGIC #3] Overwrite Warning Check
+                const items = this.quoteService.getItems();
+                const { lfModifiedRowIndexes } = this.uiService.getState();
+                const hasConflict = items.some((item, index) => 
+                    item.fabricType === 'BO1' && lfModifiedRowIndexes.has(index)
+                );
+
+                if (hasConflict) {
+                    this.eventAggregator.publish('showConfirmationDialog', {
+                        message: 'Some BO1 items have Light-Filter settings. Continuing will overwrite this data. Proceed?',
+                        buttons: [
+                            { text: 'OK', callback: () => this._enterFCMode(true) },
+                            { text: 'Cancel', className: 'secondary', callback: () => {} }
+                        ]
+                    });
+                } else {
+                    this._enterFCMode(false);
+                }
             } else {
-                // [FIX #1 & #2] On exiting FC mode, just disable the panel. Do not change columns.
+                this.uiService.setActiveEditMode(null);
                 this._updatePanelInputsState();
+                this.publish();
             }
         } 
+    }
+    
+    _enterFCMode(isOverwriting) {
+        if (isOverwriting) {
+            const items = this.quoteService.getItems();
+            const { lfModifiedRowIndexes } = this.uiService.getState();
+            const indexesToClear = new Set();
+            items.forEach((item, index) => {
+                if (item.fabricType === 'BO1' && lfModifiedRowIndexes.has(index)) {
+                    indexesToClear.add(index);
+                }
+            });
+            if (indexesToClear.size > 0) {
+                this.uiService.removeLFModifiedRows(indexesToClear);
+            }
+        }
+        this.uiService.setActiveEditMode('K2');
+        this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'fabric', 'color']);
+        this._updatePanelInputsState(); 
+        this.uiService.setActiveCell(null, null);
         this.publish();
     }
     
@@ -98,7 +132,6 @@ export class DetailConfigView {
     handlePanelInputEnter({ type, field, value }) {
         const { activeEditMode, lfSelectedRowIndexes } = this.uiService.getState();
 
-        // [FIX #4] Reworked LF workflow to handle two-step input
         if (type === 'LF') {
             if (field === 'fabric') {
                 const nextInput = document.querySelector('input[data-type="LF"][data-field="color"]');
@@ -121,7 +154,6 @@ export class DetailConfigView {
             return;
         }
         
-        // --- FC Workflow ---
         this.quoteService.batchUpdatePropertyByType(type, field, value);
         this.publish();
 
@@ -134,6 +166,7 @@ export class DetailConfigView {
             nextInput.focus();
             nextInput.select();
         } else {
+            // [NEW LOGIC #1] Auto-exit after last input
             activeElement.blur();
             this.uiService.setActiveEditMode(null);
             this.publish();
@@ -145,6 +178,16 @@ export class DetailConfigView {
 
         if (activeEditMode === 'K2_LF_SELECT' || activeEditMode === 'K2_LF_DELETE_SELECT') {
             const item = this.quoteService.getItems()[rowIndex];
+            
+            // [FIX] LFD can only select LF-modified items
+            if (activeEditMode === 'K2_LF_DELETE_SELECT') {
+                const { lfModifiedRowIndexes } = this.uiService.getState();
+                if (!lfModifiedRowIndexes.has(rowIndex)) {
+                    this.eventAggregator.publish('showNotification', { message: 'Only items with a Light-Filter setting (pink background) can be selected for deletion.', type: 'error' });
+                    return;
+                }
+            }
+
             if (activeEditMode === 'K2_LF_SELECT' && item.fabricType !== 'BO1') {
                 this.eventAggregator.publish('showNotification', { message: 'Only items with TYPE "BO1" can be selected.', type: 'error' });
                 return;
@@ -216,10 +259,6 @@ export class DetailConfigView {
         this.publish();
     }
     
-    /**
-     * [NEW] Public method to initialize or reset the panel's input states.
-     * Called by AppController when switching to the detail view.
-     */
     initializePanelState() {
         this._updatePanelInputsState();
     }
@@ -233,12 +272,25 @@ export class DetailConfigView {
         
         if (activeEditMode === 'K2') {
             allPanelInputs.forEach(input => {
-                if (input.dataset.type !== 'LF') {
-                    input.disabled = !presentTypes.has(input.dataset.type);
+                const type = input.dataset.type;
+                const field = input.dataset.field;
+
+                if (type !== 'LF') {
+                    input.disabled = !presentTypes.has(type);
+                    if (!input.disabled) {
+                        // [NEW LOGIC #2] Pre-fill data
+                        const itemWithData = items.find(item => item.fabricType === type && item[field]);
+                        if (itemWithData) {
+                            input.value = itemWithData[field];
+                        } else {
+                            input.value = '';
+                        }
+                    }
                 } else {
                     input.disabled = true;
                 }
             });
+
             const firstEnabledInput = document.querySelector('.panel-input:not([disabled])');
             if (firstEnabledInput) {
                 setTimeout(() => {

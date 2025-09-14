@@ -148,13 +148,6 @@ export class QuoteService {
         return changed;
     }
 
-    /**
-     * [NEW] Batch updates properties specifically for the Light-Filter feature.
-     * @param {Set<number>} rowIndexes - A set of row indexes to update.
-     * @param {string} fabricName - The new base fabric name.
-     * @param {string} fabricColor - The new fabric color.
-     * @returns {boolean} - True if any item was changed.
-     */
     batchUpdateLFProperties(rowIndexes, fabricName, fabricColor) {
         const items = this._getItems();
         const newFabricName = `L-Filter ${fabricName}`;
@@ -169,6 +162,31 @@ export class QuoteService {
                 }
                 if (item.color !== fabricColor) {
                     item.color = fabricColor;
+                    changed = true;
+                }
+            }
+        }
+        return changed;
+    }
+    
+    /**
+     * [FIX] Clears the fabric and color for a set of row indexes.
+     * Used by the LF-Del functionality.
+     * @param {Set<number>} rowIndexes - A set of row indexes to clear.
+     * @returns {boolean} - True if any item was changed.
+     */
+    removeLFProperties(rowIndexes) {
+        const items = this._getItems();
+        let changed = false;
+        for (const index of rowIndexes) {
+            const item = items[index];
+            if (item) {
+                if (item.fabric !== '') {
+                    item.fabric = '';
+                    changed = true;
+                }
+                if (item.color !== '') {
+                    item.color = '';
                     changed = true;
                 }
             }
