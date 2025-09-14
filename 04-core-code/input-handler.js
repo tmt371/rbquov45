@@ -89,13 +89,13 @@ export class InputHandler {
                     const input = event.target;
                     this.eventAggregator.publish('panelInputEnterPressed', {
                         type: input.dataset.type,
-                        field: input.dataset.field
+                        field: input.dataset.field,
+                        value: input.value
                     });
                 }
             });
         }
 
-        // --- [NEW] Event listener for the dedicated Location input box ---
         const locationInput = document.getElementById('location-input-box');
         if (locationInput) {
             locationInput.addEventListener('keydown', (event) => {

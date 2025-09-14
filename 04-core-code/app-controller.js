@@ -74,6 +74,10 @@ export class AppController {
         const currentView = this.uiService.getState().currentView;
         if (currentView === 'QUICK_QUOTE') {
             this.uiService.setCurrentView('DETAIL_CONFIG');
+            // [FIX] Initialize the panel state immediately after view switch
+            if (this.detailConfigView) {
+                this.detailConfigView.initializePanelState();
+            }
         } else {
             this.uiService.setCurrentView('QUICK_QUOTE');
             this.uiService.setVisibleColumns(initialState.ui.visibleColumns);
@@ -102,7 +106,6 @@ export class AppController {
     _handleFileLoad({ fileName, content }) {
         const result = this.fileService.parseFileContent(fileName, content);
         if (result.success) {
-            // [FIXED] Assign loaded data to the QuoteService, not a local property.
             this.quoteService.quoteData = result.data;
             this.uiService.reset(initialState.ui);
             this.uiService.setSumOutdated(true);

@@ -34,7 +34,6 @@ export class DetailConfigView {
             this.uiService.setActiveEditMode(newMode);
 
             if (newMode) {
-                // [MODIFIED] FC button activation logic
                 this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'fabric', 'color']);
                 this._updatePanelInputsState(); 
                 this.uiService.setActiveCell(null, null);
@@ -85,7 +84,7 @@ export class DetailConfigView {
             this.publish();
             setTimeout(() => locationInput?.select(), 0);
         } else {
-            this._toggleLocationEditMode(null); // Auto-exit after the last item
+            this._toggleLocationEditMode(null);
         }
     }
 
@@ -97,9 +96,9 @@ export class DetailConfigView {
 
     handlePanelInputEnter({ type, field, value }) {
         const { activeEditMode, lfSelectedRowIndexes } = this.uiService.getState();
-
-        if (activeEditMode === 'K2_LF_SELECT') {
-            const [lfFname, lfColor] = value.split(',');
+        
+        if (type === 'LF') {
+            const [lfFname, lfColor] = [value, document.querySelector('input[data-type="LF"][data-field="color"]').value];
             this.quoteService.batchUpdateLFProperties(lfSelectedRowIndexes, lfFname, lfColor);
             this.uiService.addLFModifiedRows(lfSelectedRowIndexes);
             this.uiService.clearLFSelection();
@@ -108,7 +107,7 @@ export class DetailConfigView {
             this.publish();
             return;
         }
-        
+
         this.quoteService.batchUpdatePropertyByType(type, field, value);
         this.publish();
 
@@ -122,7 +121,7 @@ export class DetailConfigView {
             nextInput.select();
         } else {
             activeElement.blur();
-            this.uiService.setActiveEditMode(null); // Exit FC mode after last input
+            this.uiService.setActiveEditMode(null);
             this.publish();
         }
     }
@@ -139,7 +138,7 @@ export class DetailConfigView {
             this.uiService.toggleLFSelection(rowIndex);
             
             if (activeEditMode === 'K2_LF_SELECT') {
-                this._updatePanelInputsState(); // Re-check if LF input should be enabled
+                this._updatePanelInputsState();
             }
         } else if (activeEditMode === 'K1') {
             this.uiService.setTargetCell({ rowIndex, column: 'location' });
@@ -202,6 +201,14 @@ export class DetailConfigView {
         }
         this.publish();
     }
+    
+    /**
+     * [NEW] Public method to initialize or reset the panel's input states.
+     * Called by AppController when switching to the detail view.
+     */
+    initializePanelState() {
+        this._updatePanelInputsState();
+    }
 
     _updatePanelInputsState() {
         const { activeEditMode, lfSelectedRowIndexes } = this.uiService.getState();
@@ -210,7 +217,7 @@ export class DetailConfigView {
         
         const allPanelInputs = document.querySelectorAll('.panel-input');
         
-        if (activeEditMode === 'K2') { // FC Mode
+        if (activeEditMode === 'K2') {
             allPanelInputs.forEach(input => {
                 if (input.dataset.type !== 'LF') {
                     input.disabled = !presentTypes.has(input.dataset.type);
@@ -225,7 +232,7 @@ export class DetailConfigView {
                     firstEnabledInput.select();
                 }, 0);
             }
-        } else if (activeEditMode === 'K2_LF_SELECT') { // LF Selection Mode
+        } else if (activeEditMode === 'K2_LF_SELECT') {
             allPanelInputs.forEach(input => {
                 const isLFRow = input.dataset.type === 'LF';
                 const hasSelection = lfSelectedRowIndexes.size > 0;
@@ -238,7 +245,7 @@ export class DetailConfigView {
                     firstEnabledInput.select();
                 }, 0);
             }
-        } else { // No active mode
+        } else {
              allPanelInputs.forEach(input => {
                 input.disabled = true;
                 input.value = '';
