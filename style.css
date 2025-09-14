@@ -260,18 +260,22 @@ html, body {
 
 /* --- Responsive Adjustments for Mobile Devices --- */
 @media (max-width: 600px) {
-    /* --- [NEW] Specific adjustments for Quick Quote View (Table 1) on mobile --- */
+    /* --- Specific adjustments for Quick Quote View (Table 1) on mobile --- */
+    .app-container:not(.detail-view-active) .results-table .col-sequence {
+        width: 24px; /* Further decrease width to eliminate scrollbar */
+    }
+    
     .app-container:not(.detail-view-active) .results-table .col-w,
     .app-container:not(.detail-view-active) .results-table .col-h {
-        width: 70px; /* Increase width to prevent number wrapping */
+        width: 70px;
     }
 
     .app-container:not(.detail-view-active) .results-table .col-type {
-        width: 55px; /* Decrease width */
+        width: 55px;
     }
 
     .app-container:not(.detail-view-active) .results-table .col-price {
-        width: 80px; /* Decrease width */
+        width: 80px;
     }
 
 
