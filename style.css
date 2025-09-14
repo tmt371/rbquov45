@@ -258,24 +258,38 @@ html, body {
 .dialog-button.secondary:hover { background-color: #5a6268; }
 
 
-/* --- [REFACTORED] Responsive Adjustments for Mobile Devices --- */
+/* --- Responsive Adjustments for Mobile Devices --- */
 @media (max-width: 600px) {
-    /* These styles apply ONLY in the detail view (left panel open) */
+    /* --- [NEW] Specific adjustments for Quick Quote View (Table 1) on mobile --- */
+    .app-container:not(.detail-view-active) .results-table .col-w,
+    .app-container:not(.detail-view-active) .results-table .col-h {
+        width: 70px; /* Increase width to prevent number wrapping */
+    }
+
+    .app-container:not(.detail-view-active) .results-table .col-type {
+        width: 55px; /* Decrease width */
+    }
+
+    .app-container:not(.detail-view-active) .results-table .col-price {
+        width: 80px; /* Decrease width */
+    }
+
+
+    /* --- Styles for Detail View (Table 2) on mobile --- */
     .app-container.detail-view-active .results-table th,
     .app-container.detail-view-active .results-table td {
-        font-size: 0.72em; /* Further reduce font size for all cells by ~15% */
-        padding: 8px 3px;    /* Reduce horizontal padding */
+        font-size: 0.72em;
+        padding: 8px 3px;
     }
 
     .app-container.detail-view-active .results-table th {
-        font-size: 0.7em; /* Make header even smaller */
+        font-size: 0.7em;
     }
     
     .app-container.detail-view-active .input-display-cell {
-        font-size: 1em; /* Keep the input display readable */
+        font-size: 1em;
     }
 
-    /* Further reduce column widths by ~15-17% */
     .app-container.detail-view-active .results-table .col-sequence { width: 29px; }
     .app-container.detail-view-active .results-table .col-type { width: 50px; }
     .app-container.detail-view-active .results-table .col-location { width: 102px; }
