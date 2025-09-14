@@ -131,7 +131,7 @@ export class DetailConfigView {
 
     handlePanelInputEnter({ type, field, value }) {
         const { activeEditMode, lfSelectedRowIndexes } = this.uiService.getState();
-
+        
         if (type === 'LF') {
             if (field === 'fabric') {
                 const nextInput = document.querySelector('input[data-type="LF"][data-field="color"]');
@@ -166,7 +166,7 @@ export class DetailConfigView {
             nextInput.focus();
             nextInput.select();
         } else {
-            // [NEW LOGIC #1] Auto-exit after last input
+            // [FIX] Auto-exit after last input
             activeElement.blur();
             this.uiService.setActiveEditMode(null);
             this.publish();
@@ -179,7 +179,6 @@ export class DetailConfigView {
         if (activeEditMode === 'K2_LF_SELECT' || activeEditMode === 'K2_LF_DELETE_SELECT') {
             const item = this.quoteService.getItems()[rowIndex];
             
-            // [FIX] LFD can only select LF-modified items
             if (activeEditMode === 'K2_LF_DELETE_SELECT') {
                 const { lfModifiedRowIndexes } = this.uiService.getState();
                 if (!lfModifiedRowIndexes.has(rowIndex)) {
