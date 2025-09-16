@@ -116,10 +116,6 @@ export class DetailConfigView {
         }
     }
 
-    /**
-     * [NEW] Handles saving data when an input field loses focus.
-     * This is now the primary method for saving data from the K2 panel.
-     */
     handlePanelInputBlur({ type, field, value }) {
         const { lfSelectedRowIndexes } = this.uiService.getState();
         
@@ -127,7 +123,6 @@ export class DetailConfigView {
             const fNameInput = document.querySelector('input[data-type="LF"][data-field="fabric"]');
             const fColorInput = document.querySelector('input[data-type="LF"][data-field="color"]');
             
-            // Only save if both fields have values to prevent partial saves
             if (fNameInput && fColorInput && fNameInput.value && fColorInput.value) {
                 this.quoteService.batchUpdateLFProperties(lfSelectedRowIndexes, fNameInput.value, fColorInput.value);
                 this.uiService.addLFModifiedRows(lfSelectedRowIndexes);
@@ -139,10 +134,6 @@ export class DetailConfigView {
         this.publish();
     }
 
-    /**
-     * [REFACTORED] This method now ONLY handles UI navigation (moving focus).
-     * Data saving is handled by `handlePanelInputBlur`.
-     */
     handlePanelInputEnter() {
         const inputs = Array.from(document.querySelectorAll('.panel-input:not([disabled])'));
         const activeElement = document.activeElement;
@@ -153,7 +144,7 @@ export class DetailConfigView {
             nextInput.focus();
             nextInput.select();
         } else {
-            activeElement.blur(); // Trigger blur on the last element to save its data
+            activeElement.blur();
             this.uiService.setActiveEditMode(null);
             this._updatePanelInputsState();
             this.publish();
@@ -215,11 +206,37 @@ export class DetailConfigView {
     }
 
     handleLFEditRequest() {
-        // ... (logic remains the same)
+        const { activeEditMode } = this.uiService.getState();
+        
+        if (activeEditMode === 'K2_LF_SELECT') {
+            this.uiService.setActiveEditMode(null);
+            this.uiService.clearLFSelection();
+            this._updatePanelInputsState();
+        } else {
+            this.uiService.setActiveEditMode('K2_LF_SELECT');
+            this.uiService.setVisibleColumns(['sequence', 'fabricTypeDisplay', 'fabric', 'color']);
+            this.eventAggregator.publish('showNotification', { message: 'Please select the items with TYPE \'BO1\' to edit the fabric name and color settings for the roller blinds.' });
+        }
+        this.publish();
     }
 
     handleLFDeleteRequest() {
-        // ... (logic remains the same)
+        const { activeEditMode } = this.uiService.getState();
+        
+        if (activeEditMode === 'K2_LF_DELETE_SELECT') {
+            const { lfSelectedRowIndexes } = this.uiService.getState();
+            if (lfSelectedRowIndexes.size > 0) {
+                this.quoteService.removeLFProperties(lfSelectedRowIndexes);
+                this.uiService.removeLFModifiedRows(lfSelectedRowIndexes);
+                this.eventAggregator.publish('showNotification', { message: 'Please continue to edit the fabric name and color of the roller blinds.' });
+            }
+            this.uiService.setActiveEditMode(null);
+            this.uiService.clearLFSelection();
+        } else {
+            this.uiService.setActiveEditMode('K2_LF_DELETE_SELECT');
+            this.eventAggregator.publish('showNotification', { message: 'Please select the roller blinds for which you want to cancel the Light-Filter fabric setting. After selection, click the LF-Del button again.' });
+        }
+        this.publish();
     }
     
     handleToggleK3EditMode() {
@@ -230,7 +247,24 @@ export class DetailConfigView {
     }
 
     handleBatchCycle({ column }) {
-        // ... (logic remains the same)
+        const items = this.quoteService.getItems();
+        if (items.length === 0 || !items[0]) return;
+
+        const BATCH_CYCLE_SEQUENCES = {
+            over: ['O', ''],
+            oi: ['IN', 'OUT'],
+            lr: ['L', 'R']
+        };
+        const sequence = BATCH_CYCLE_SEQUENCES[column];
+        if (!sequence) return;
+        
+        const firstItemValue = items[0][column] || '';
+        const currentIndex = sequence.indexOf(firstItemValue);
+        const nextIndex = (currentIndex === -1) ? 0 : (currentIndex + 1) % sequence.length;
+        const nextValue = sequence[nextIndex];
+        
+        this.quoteService.batchUpdateProperty(column, nextValue);
+        this.publish();
     }
 
     initializePanelState() {
@@ -238,6 +272,59 @@ export class DetailConfigView {
     }
 
     _updatePanelInputsState() {
-        // ... (logic remains the same)
+        const { activeEditMode, lfSelectedRowIndexes } = this.uiService.getState();
+        const items = this.quoteService.getItems();
+        const presentTypes = new Set(items.map(item => item.fabricType).filter(Boolean));
+        
+        const allPanelInputs = document.querySelectorAll('.panel-input');
+        let firstEnabledInput = null;
+        
+        if (activeEditMode === 'K2') {
+            allPanelInputs.forEach(input => {
+                const type = input.dataset.type;
+                const field = input.dataset.field;
+
+                if (type !== 'LF') {
+                    const isEnabled = presentTypes.has(type);
+                    input.disabled = !isEnabled;
+
+                    if (isEnabled) {
+                        if (!firstEnabledInput) {
+                            firstEnabledInput = input;
+                        }
+                        // [FIX] Correctly find item with existing data, even if it's an empty string
+                        const itemWithData = items.find(item => item.fabricType === type && typeof item[field] === 'string');
+                        input.value = itemWithData ? itemWithData[field] : '';
+                    }
+                } else {
+                    input.disabled = true;
+                }
+            });
+
+            if (firstEnabledInput) {
+                setTimeout(() => {
+                    firstEnabledInput.focus();
+                    firstEnabledInput.select();
+                }, 50); // Use a slightly safer timeout
+            }
+        } else if (activeEditMode === 'K2_LF_SELECT') {
+            allPanelInputs.forEach(input => {
+                const isLFRow = input.dataset.type === 'LF';
+                const hasSelection = lfSelectedRowIndexes.size > 0;
+                input.disabled = !(isLFRow && hasSelection);
+            });
+            const firstEnabledInput = document.querySelector('.panel-input:not([disabled])');
+            if (firstEnabledInput) {
+                setTimeout(() => {
+                    firstEnabledInput.focus();
+                    firstEnabledInput.select();
+                }, 50);
+            }
+        } else {
+             allPanelInputs.forEach(input => {
+                input.disabled = true;
+                input.value = '';
+            });
+        }
     }
 }
