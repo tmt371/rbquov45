@@ -158,10 +158,6 @@ export class UIManager {
         if (this.k3LrButton) this.k3LrButton.disabled = k3SubButtonsDisabled;
     }
 
-    /**
-     * [NEW] Helper method to calculate and apply panel layout styles.
-     * This is called only when the panel expands.
-     */
     _adjustLeftPanelLayout() {
         const appContainer = this.appElement;
         const numericKeyboard = this.numericKeyboardPanel;
@@ -184,36 +180,27 @@ export class UIManager {
         leftPanel.style.height = totalKeysHeight + 'px';
     }
 
-    /**
-     * [REFACTORED] Binds the resize listener.
-     * Layout calculation is now handled by _updateLeftPanelState.
-     */
     _initializeLeftPanelLayout() {
         window.addEventListener('resize', () => {
-            // Only recalculate layout if the panel is currently expanded
             if (this.leftPanel.classList.contains('is-expanded')) {
                 this._adjustLeftPanelLayout();
             }
         });
+        // [FIX] Restore initial layout calculation to ensure panel has height/position on load
+        this._adjustLeftPanelLayout();
     }
     
-    /**
-     * [REFACTORED] Manages panel expansion/retraction and triggers layout calculations.
-     */
     _updateLeftPanelState(currentView) {
         if (this.leftPanel) {
             const isExpanded = (currentView === 'DETAIL_CONFIG');
             this.leftPanel.classList.toggle('is-expanded', isExpanded);
 
             if (isExpanded) {
-                // When expanding, run the layout calculation to set the correct position
                 this._adjustLeftPanelLayout();
             } else {
-                // When retracting, clear all inline styles to return to the CSS default
+                // [FIX] Only clear 'left' style. Preserve height/top/width.
+                // This fixes the desktop artifact bug without deleting the panel.
                 this.leftPanel.style.left = '';
-                this.leftPanel.style.width = '';
-                this.leftPanel.style.top = '';
-                this.leftPanel.style.height = '';
             }
         }
     }
