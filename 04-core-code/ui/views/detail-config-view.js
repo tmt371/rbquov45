@@ -116,31 +116,34 @@ export class DetailConfigView {
         }
     }
 
-
-    handleBatchUpdateRequest({ column, value }) {
-        this.quoteService.batchUpdateProperty(column, value);
-        this.publish();
-    }
-
-    handlePanelInputEnter({ type, field, value }) {
-        console.log(`[DetailConfigView] Received panel input: type=${type}, field=${field}, value=${value}`);
-
+    /**
+     * [NEW] Handles saving data when an input field loses focus.
+     * This is now the primary method for saving data from the K2 panel.
+     */
+    handlePanelInputBlur({ type, field, value }) {
         const { lfSelectedRowIndexes } = this.uiService.getState();
         
         if (type === 'LF') {
-            // ... (LF logic remains the same)
-            return;
+            const fNameInput = document.querySelector('input[data-type="LF"][data-field="fabric"]');
+            const fColorInput = document.querySelector('input[data-type="LF"][data-field="color"]');
+            
+            // Only save if both fields have values to prevent partial saves
+            if (fNameInput && fColorInput && fNameInput.value && fColorInput.value) {
+                this.quoteService.batchUpdateLFProperties(lfSelectedRowIndexes, fNameInput.value, fColorInput.value);
+                this.uiService.addLFModifiedRows(lfSelectedRowIndexes);
+            }
+        } else {
+            this.quoteService.batchUpdatePropertyByType(type, field, value);
         }
         
-        this.quoteService.batchUpdatePropertyByType(type, field, value);
         this.publish();
+    }
 
-        // --- [DEEP DEBUG LOG] ---
-        // Create a deep copy for logging to prevent mutations before console displays it.
-        const currentState = JSON.parse(JSON.stringify(this.quoteService.getQuoteData()));
-        console.log(`[DetailConfigView] State AFTER update for ${type}-${field}:`, currentState.rollerBlindItems);
-        // --- [END DEEP DEBUG LOG] ---
-
+    /**
+     * [REFACTORED] This method now ONLY handles UI navigation (moving focus).
+     * Data saving is handled by `handlePanelInputBlur`.
+     */
+    handlePanelInputEnter() {
         const inputs = Array.from(document.querySelectorAll('.panel-input:not([disabled])'));
         const activeElement = document.activeElement;
         const currentIndex = inputs.indexOf(activeElement);
@@ -150,7 +153,7 @@ export class DetailConfigView {
             nextInput.focus();
             nextInput.select();
         } else {
-            activeElement.blur();
+            activeElement.blur(); // Trigger blur on the last element to save its data
             this.uiService.setActiveEditMode(null);
             this._updatePanelInputsState();
             this.publish();
