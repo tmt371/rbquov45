@@ -94,15 +94,15 @@ export class InputHandler {
             batchTable.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter' && event.target.matches('.panel-input')) {
                     event.preventDefault();
+                    const input = event.target;
                     this.eventAggregator.publish('panelInputEnterPressed', {
-                        type: event.target.dataset.type,
-                        field: event.target.dataset.field,
-                        value: event.target.value
+                        type: input.dataset.type,
+                        field: input.dataset.field,
+                        value: input.value
                     });
                 }
             });
 
-            // [NEW] Add a blur event listener for reliable data saving on mobile
             batchTable.addEventListener('blur', (event) => {
                 if (event.target.matches('.panel-input')) {
                     this.eventAggregator.publish('panelInputBlurred', {
@@ -111,7 +111,7 @@ export class InputHandler {
                         value: event.target.value
                     });
                 }
-            }, true); // Use capturing to ensure this fires reliably
+            }, true);
         }
 
         const locationInput = document.getElementById('location-input-box');

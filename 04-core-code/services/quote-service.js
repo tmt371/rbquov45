@@ -164,17 +164,10 @@ export class QuoteService {
     }
     
     batchUpdatePropertyByType(type, property, value) {
-        // --- [DEBUG LOG] ---
-        console.log(`[QuoteService] batchUpdateByType received: type=${type}, property=${property}, value=${value}`);
-        // --- [END DEBUG LOG] ---
-
         const items = this._getItems();
         let changed = false;
         items.forEach((item, index) => {
             if (item.fabricType === type) {
-                // --- [DEBUG LOG] ---
-                console.log(`[QuoteService] Matched item at index ${index}. Setting ${property} to ${value}`);
-                // --- [END DEBUG LOG] ---
                 if (item[property] !== value) {
                     item[property] = value;
                     changed = true;
