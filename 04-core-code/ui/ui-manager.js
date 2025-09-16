@@ -19,8 +19,7 @@ export class UIManager {
         const clearButtonOnKeyboard = document.getElementById('key-clear');
         this.clearButton = clearButtonOnKeyboard;
         this.leftPanel = document.getElementById('left-panel');
-        this.leftPanelToggle = document.getElementById('left-panel-toggle');
-        this.rightPanelToggle = document.getElementById('function-panel-toggle');
+        this.rightPanel = document.getElementById('function-panel');
         
         // K1 Panel
         this.locationButton = document.getElementById('btn-focus-location');
@@ -47,9 +46,9 @@ export class UIManager {
         const summaryElement = document.getElementById('total-sum-value');
         this.summaryComponent = new SummaryComponent(summaryElement);
 
-        this.functionPanel = new PanelComponent({
-            panelElement: document.getElementById('function-panel'),
-            toggleElement: this.rightPanelToggle,
+        this.functionPanelComponent = new PanelComponent({
+            panelElement: this.rightPanel,
+            toggleElement: document.getElementById('function-panel-toggle'),
             eventAggregator: this.eventAggregator,
             expandedClass: 'is-expanded',
             retractEventName: 'operationSuccessfulAutoHidePanel'
@@ -119,7 +118,6 @@ export class UIManager {
         const { activeEditMode, locationInputValue, lfModifiedRowIndexes } = state.ui;
         const { rollerBlindItems } = state.quoteData;
 
-        // --- K1 Location Input State ---
         if (this.locationInput) {
             const isLocationActive = activeEditMode === 'K1';
             this.locationInput.disabled = !isLocationActive;
@@ -129,7 +127,6 @@ export class UIManager {
             }
         }
         
-        // --- K2 Button Active/Disabled States ---
         const isFCMode = activeEditMode === 'K2';
         const isLFSelectMode = activeEditMode === 'K2_LF_SELECT';
         const isLFDeleteMode = activeEditMode === 'K2_LF_DELETE_SELECT';
@@ -148,7 +145,6 @@ export class UIManager {
         if (this.lfButton) this.lfButton.disabled = (activeEditMode !== null && !isLFSelectMode) || !hasBO1;
         if (this.lfDelButton) this.lfDelButton.disabled = (activeEditMode !== null && !isLFDeleteMode) || !hasLFModified;
 
-        // --- K3 Button Active/Disabled States ---
         const isK3EditMode = activeEditMode === 'K3';
         if (this.k3EditButton) {
             this.k3EditButton.classList.toggle('active', isK3EditMode);
@@ -165,35 +161,33 @@ export class UIManager {
      */
     _adjustLayouts() {
         const appContainer = this.appElement;
-        const numericKeyboard = this.numericKeyboardPanel;
-        const key7 = document.getElementById('key-7');
-        
-        if (!appContainer || !numericKeyboard || !key7 || !this.leftPanel) return;
+        const leftPanel = this.leftPanel;
+        const rightPanel = this.rightPanel;
+
+        if (!appContainer || !leftPanel || !rightPanel) return;
         
         const containerRect = appContainer.getBoundingClientRect();
-        const key7Rect = key7.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
 
-        // --- Adjust Left Panel (when open) ---
-        if (this.leftPanel.classList.contains('is-expanded')) {
+        // --- Adjust Panel Positions to align their toggles with the app container ---
+        leftPanel.style.left = containerRect.left + 'px';
+        rightPanel.style.right = (viewportWidth - containerRect.right) + 'px';
+
+        // --- Adjust Left Panel Dimensions (when open) ---
+        if (leftPanel.classList.contains('is-expanded')) {
+            const numericKeyboard = this.numericKeyboardPanel;
+            const key7 = document.getElementById('key-7');
+            if (!numericKeyboard || !key7) return;
+
+            const key7Rect = key7.getBoundingClientRect();
             const rightPageMargin = 40;
-            this.leftPanel.style.left = containerRect.left + 'px';
             const newWidth = containerRect.width - rightPageMargin;
-            this.leftPanel.style.width = newWidth + 'px';
-            this.leftPanel.style.top = key7Rect.top + 'px';
+            leftPanel.style.width = newWidth + 'px';
+            leftPanel.style.top = key7Rect.top + 'px';
             const keyHeight = key7Rect.height;
             const gap = 5;
             const totalKeysHeight = (keyHeight * 4) + (gap * 3);
-            this.leftPanel.style.height = totalKeysHeight + 'px';
-        }
-
-        // --- Adjust Panel Toggles to align with the app container ---
-        if (this.leftPanelToggle) {
-            const handleWidth = this.leftPanelToggle.offsetWidth;
-            this.leftPanelToggle.style.left = (containerRect.left - handleWidth) + 'px';
-        }
-        if (this.rightPanelToggle) {
-            // The toggle's CSS positions it with `left: -30px`, so we set its new `left` to the container's right edge.
-            this.rightPanelToggle.style.left = containerRect.right + 'px';
+            leftPanel.style.height = totalKeysHeight + 'px';
         }
     }
 
@@ -208,9 +202,8 @@ export class UIManager {
             this.leftPanel.classList.toggle('is-expanded', isExpanded);
 
             if (isExpanded) {
+                // Re-run layout adjustment in case dimensions changed while it was hidden
                 this._adjustLayouts();
-            } else {
-                this.leftPanel.style.left = '';
             }
         }
     }
