@@ -19,6 +19,8 @@ export class UIManager {
         const clearButtonOnKeyboard = document.getElementById('key-clear');
         this.clearButton = clearButtonOnKeyboard;
         this.leftPanel = document.getElementById('left-panel');
+        this.leftPanelToggle = document.getElementById('left-panel-toggle');
+        this.rightPanelToggle = document.getElementById('function-panel-toggle');
         
         // K1 Panel
         this.locationButton = document.getElementById('btn-focus-location');
@@ -47,7 +49,7 @@ export class UIManager {
 
         this.functionPanel = new PanelComponent({
             panelElement: document.getElementById('function-panel'),
-            toggleElement: document.getElementById('function-panel-toggle'),
+            toggleElement: this.rightPanelToggle,
             eventAggregator: this.eventAggregator,
             expandedClass: 'is-expanded',
             retractEventName: 'operationSuccessfulAutoHidePanel'
@@ -64,7 +66,7 @@ export class UIManager {
         });
 
         this.initialize();
-        this._initializeLeftPanelLayout();
+        this._initializeDynamicLayouts();
     }
 
     initialize() {
@@ -158,36 +160,46 @@ export class UIManager {
         if (this.k3LrButton) this.k3LrButton.disabled = k3SubButtonsDisabled;
     }
 
-    _adjustLeftPanelLayout() {
+    /**
+     * [REFACTORED] Calculates and applies styles for dynamically positioned elements.
+     */
+    _adjustLayouts() {
         const appContainer = this.appElement;
         const numericKeyboard = this.numericKeyboardPanel;
         const key7 = document.getElementById('key-7');
-        const leftPanel = this.leftPanel;
-
-        if (!appContainer || !numericKeyboard || !key7 || !leftPanel) return;
+        
+        if (!appContainer || !numericKeyboard || !key7 || !this.leftPanel) return;
         
         const containerRect = appContainer.getBoundingClientRect();
         const key7Rect = key7.getBoundingClientRect();
-        const rightPageMargin = 40;
-        
-        leftPanel.style.left = containerRect.left + 'px';
-        const newWidth = containerRect.width - rightPageMargin;
-        leftPanel.style.width = newWidth + 'px';
-        leftPanel.style.top = key7Rect.top + 'px';
-        const keyHeight = key7Rect.height;
-        const gap = 5;
-        const totalKeysHeight = (keyHeight * 4) + (gap * 3);
-        leftPanel.style.height = totalKeysHeight + 'px';
+
+        // --- Adjust Left Panel (when open) ---
+        if (this.leftPanel.classList.contains('is-expanded')) {
+            const rightPageMargin = 40;
+            this.leftPanel.style.left = containerRect.left + 'px';
+            const newWidth = containerRect.width - rightPageMargin;
+            this.leftPanel.style.width = newWidth + 'px';
+            this.leftPanel.style.top = key7Rect.top + 'px';
+            const keyHeight = key7Rect.height;
+            const gap = 5;
+            const totalKeysHeight = (keyHeight * 4) + (gap * 3);
+            this.leftPanel.style.height = totalKeysHeight + 'px';
+        }
+
+        // --- Adjust Panel Toggles to align with the app container ---
+        if (this.leftPanelToggle) {
+            const handleWidth = this.leftPanelToggle.offsetWidth;
+            this.leftPanelToggle.style.left = (containerRect.left - handleWidth) + 'px';
+        }
+        if (this.rightPanelToggle) {
+            // The toggle's CSS positions it with `left: -30px`, so we set its new `left` to the container's right edge.
+            this.rightPanelToggle.style.left = containerRect.right + 'px';
+        }
     }
 
-    _initializeLeftPanelLayout() {
-        window.addEventListener('resize', () => {
-            if (this.leftPanel.classList.contains('is-expanded')) {
-                this._adjustLeftPanelLayout();
-            }
-        });
-        // [FIX] Restore initial layout calculation to ensure panel has height/position on load
-        this._adjustLeftPanelLayout();
+    _initializeDynamicLayouts() {
+        window.addEventListener('resize', () => this._adjustLayouts());
+        this._adjustLayouts(); // Run once on init
     }
     
     _updateLeftPanelState(currentView) {
@@ -196,10 +208,8 @@ export class UIManager {
             this.leftPanel.classList.toggle('is-expanded', isExpanded);
 
             if (isExpanded) {
-                this._adjustLeftPanelLayout();
+                this._adjustLayouts();
             } else {
-                // [FIX] Only clear 'left' style. Preserve height/top/width.
-                // This fixes the desktop artifact bug without deleting the panel.
                 this.leftPanel.style.left = '';
             }
         }
