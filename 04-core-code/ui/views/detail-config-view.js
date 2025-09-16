@@ -116,7 +116,17 @@ export class DetailConfigView {
         }
     }
 
+
+    handleBatchUpdateRequest({ column, value }) {
+        this.quoteService.batchUpdateProperty(column, value);
+        this.publish();
+    }
+
     handlePanelInputEnter({ type, field, value }) {
+        // --- [DEBUG LOG] ---
+        console.log(`[DetailConfigView] Received panel input: type=${type}, field=${field}, value=${value}`);
+        // --- [END DEBUG LOG] ---
+
         const { lfSelectedRowIndexes } = this.uiService.getState();
         
         if (type === 'LF') {
@@ -197,7 +207,6 @@ export class DetailConfigView {
         this.publish();
     }
 
-    // [FIX] Renamed from handleTableCellInteraction to handleTableCellClick
     handleTableCellClick({ rowIndex, column }) {
         const { activeEditMode } = this.uiService.getState();
 
@@ -205,7 +214,6 @@ export class DetailConfigView {
 
         if (['over', 'oi', 'lr'].includes(column)) {
             this.uiService.setActiveCell(rowIndex, column);
-            // [FIX] Call the new service method with the correct logic
             this.quoteService.cycleK3Property(rowIndex, column);
             this.publish();
             

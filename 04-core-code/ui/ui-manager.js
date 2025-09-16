@@ -131,7 +131,9 @@ export class UIManager {
         const isFCMode = activeEditMode === 'K2';
         const isLFSelectMode = activeEditMode === 'K2_LF_SELECT';
         const isLFDeleteMode = activeEditMode === 'K2_LF_DELETE_SELECT';
-        
+        const isAnyK2ModeActive = isFCMode || isLFSelectMode || isLFDeleteMode;
+
+        if (this.locationButton) this.locationButton.classList.toggle('active', activeEditMode === 'K1');
         if (this.fabricColorButton) this.fabricColorButton.classList.toggle('active', isFCMode);
         if (this.lfButton) this.lfButton.classList.toggle('active', isLFSelectMode);
         if (this.lfDelButton) this.lfDelButton.classList.toggle('active', isLFDeleteMode);
@@ -139,6 +141,7 @@ export class UIManager {
         const hasBO1 = rollerBlindItems.some(item => item.fabricType === 'BO1');
         const hasLFModified = lfModifiedRowIndexes.size > 0;
 
+        if (this.locationButton) this.locationButton.disabled = isAnyK2ModeActive;
         if (this.fabricColorButton) this.fabricColorButton.disabled = activeEditMode !== null && !isFCMode;
         if (this.lfButton) this.lfButton.disabled = (activeEditMode !== null && !isLFSelectMode) || !hasBO1;
         if (this.lfDelButton) this.lfDelButton.disabled = (activeEditMode !== null && !isLFDeleteMode) || !hasLFModified;
@@ -155,37 +158,63 @@ export class UIManager {
         if (this.k3LrButton) this.k3LrButton.disabled = k3SubButtonsDisabled;
     }
 
-    _initializeLeftPanelLayout() {
-        const appContainer = document.querySelector('.app-container');
-        const leftPanel = this.leftPanel;
+    /**
+     * [NEW] Helper method to calculate and apply panel layout styles.
+     * This is called only when the panel expands.
+     */
+    _adjustLeftPanelLayout() {
+        const appContainer = this.appElement;
         const numericKeyboard = this.numericKeyboardPanel;
         const key7 = document.getElementById('key-7');
+        const leftPanel = this.leftPanel;
 
-        if (!leftPanel) return;
-
-        const adjustLayout = () => {
-            if (!appContainer || !numericKeyboard || !key7 || !leftPanel) return;
-            const containerRect = appContainer.getBoundingClientRect();
-            const key7Rect = key7.getBoundingClientRect();
-            const rightPageMargin = 40;
-            leftPanel.style.left = containerRect.left + 'px';
-            const newWidth = containerRect.width - rightPageMargin;
-            leftPanel.style.width = newWidth + 'px';
-            leftPanel.style.top = key7Rect.top + 'px';
-            const keyHeight = key7Rect.height;
-            const gap = 5;
-            const totalKeysHeight = (keyHeight * 4) + (gap * 3);
-            leftPanel.style.height = totalKeysHeight + 'px';
-        };
+        if (!appContainer || !numericKeyboard || !key7 || !leftPanel) return;
         
-        adjustLayout();
-        window.addEventListener('resize', adjustLayout);
+        const containerRect = appContainer.getBoundingClientRect();
+        const key7Rect = key7.getBoundingClientRect();
+        const rightPageMargin = 40;
+        
+        leftPanel.style.left = containerRect.left + 'px';
+        const newWidth = containerRect.width - rightPageMargin;
+        leftPanel.style.width = newWidth + 'px';
+        leftPanel.style.top = key7Rect.top + 'px';
+        const keyHeight = key7Rect.height;
+        const gap = 5;
+        const totalKeysHeight = (keyHeight * 4) + (gap * 3);
+        leftPanel.style.height = totalKeysHeight + 'px';
+    }
+
+    /**
+     * [REFACTORED] Binds the resize listener.
+     * Layout calculation is now handled by _updateLeftPanelState.
+     */
+    _initializeLeftPanelLayout() {
+        window.addEventListener('resize', () => {
+            // Only recalculate layout if the panel is currently expanded
+            if (this.leftPanel.classList.contains('is-expanded')) {
+                this._adjustLeftPanelLayout();
+            }
+        });
     }
     
+    /**
+     * [REFACTORED] Manages panel expansion/retraction and triggers layout calculations.
+     */
     _updateLeftPanelState(currentView) {
         if (this.leftPanel) {
             const isExpanded = (currentView === 'DETAIL_CONFIG');
             this.leftPanel.classList.toggle('is-expanded', isExpanded);
+
+            if (isExpanded) {
+                // When expanding, run the layout calculation to set the correct position
+                this._adjustLeftPanelLayout();
+            } else {
+                // When retracting, clear all inline styles to return to the CSS default
+                this.leftPanel.style.left = '';
+                this.leftPanel.style.width = '';
+                this.leftPanel.style.top = '';
+                this.leftPanel.style.height = '';
+            }
         }
     }
 

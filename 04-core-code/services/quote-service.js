@@ -119,12 +119,6 @@ export class QuoteService {
         return false;
     }
 
-    /**
-     * [NEW] Cycles through K3 property values with specific, state-dependent logic.
-     * @param {number} rowIndex - The index of the item to update.
-     * @param {string} column - The property key to cycle ('over', 'oi', 'lr').
-     * @returns {boolean} - True if the value was changed.
-     */
     cycleK3Property(rowIndex, column) {
         const item = this._getItems()[rowIndex];
         if (!item) return false;
@@ -170,10 +164,17 @@ export class QuoteService {
     }
     
     batchUpdatePropertyByType(type, property, value) {
+        // --- [DEBUG LOG] ---
+        console.log(`[QuoteService] batchUpdateByType received: type=${type}, property=${property}, value=${value}`);
+        // --- [END DEBUG LOG] ---
+
         const items = this._getItems();
         let changed = false;
-        items.forEach(item => {
+        items.forEach((item, index) => {
             if (item.fabricType === type) {
+                // --- [DEBUG LOG] ---
+                console.log(`[QuoteService] Matched item at index ${index}. Setting ${property} to ${value}`);
+                // --- [END DEBUG LOG] ---
                 if (item[property] !== value) {
                     item[property] = value;
                     changed = true;

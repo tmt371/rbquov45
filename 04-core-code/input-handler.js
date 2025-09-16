@@ -36,7 +36,6 @@ export class InputHandler {
             });
         }
 
-        // K1 Tab Buttons
         const locationButton = document.getElementById('btn-focus-location');
         if (locationButton) {
             locationButton.addEventListener('click', () => {
@@ -44,7 +43,6 @@ export class InputHandler {
             });
         }
         
-        // K2 Tab Buttons
         const fabricButton = document.getElementById('btn-focus-fabric');
         if (fabricButton) {
             fabricButton.addEventListener('click', () => {
@@ -64,7 +62,6 @@ export class InputHandler {
             });
         }
 
-        // K3 Tab Buttons [REFACTORED]
         const editButton = document.getElementById('btn-k3-edit');
         if (editButton) {
             editButton.addEventListener('click', () => {
@@ -85,7 +82,6 @@ export class InputHandler {
         setupBatchCycleButton('btn-batch-cycle-lr', 'lr');
 
 
-        // K5 Tab Buttons
         const returnButton = document.getElementById('btn-return-form1');
         if (returnButton) {
             returnButton.addEventListener('click', () => {
@@ -99,11 +95,15 @@ export class InputHandler {
                 if (event.key === 'Enter' && event.target.matches('.panel-input')) {
                     event.preventDefault();
                     const input = event.target;
-                    this.eventAggregator.publish('panelInputEnterPressed', {
+                    const payload = {
                         type: input.dataset.type,
                         field: input.dataset.field,
                         value: input.value
-                    });
+                    };
+                    // --- [DEBUG LOG] ---
+                    console.log('[InputHandler] Firing panelInputEnterPressed with payload:', payload);
+                    // --- [END DEBUG LOG] ---
+                    this.eventAggregator.publish('panelInputEnterPressed', payload);
                 }
             });
         }
