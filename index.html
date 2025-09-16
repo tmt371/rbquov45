@@ -77,13 +77,16 @@
         <div class="dialog-box">
             <p class="dialog-message">The current quote contains unsaved data. What would you like to do?</p>
             <div class="dialog-buttons">
-                <button id="dialog-btn-save-load" class="dialog-button">Save then Load</button>
-                <button id="dialog-btn-load" class="dialog-button">Load Directly</button>
-                <button id="dialog-btn-cancel" class="dialog-button secondary">Cancel</button>
+                <button class="dialog-button">Save then Load</button>
+                <button class="dialog-button">Load Directly</button>
+                <button class="dialog-button secondary">Cancel</button>
             </div>
         </div>
     </div>
 
     <script type="module" src="./04-core-code/main.js"></script>
-</body>
+
+    <script src="//cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
+    </body>
 </html>
