@@ -11,7 +11,6 @@
 }
 #left-panel {
     position: fixed;
-    left: 0; /* [FIX] Set a default horizontal position */
     background-color: var(--k1-bg-color);
     border: 1px solid var(--panel-border-color);
     border-left: none;
@@ -178,7 +177,7 @@
     cursor: not-allowed;
 }
 
-/* --- K2 Light-Filter Feature Styles for Main Table --- */
+/* --- [NEW] K2 Light-Filter Feature Styles for Main Table --- */
 /* Style for sequence cell when selected in LF mode */
 .results-table td.lf-selection-highlight {
     background-color: #fffacd; /* Light Yellow */
